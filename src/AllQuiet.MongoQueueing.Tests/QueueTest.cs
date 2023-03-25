@@ -71,7 +71,8 @@ public class QueueTest : MongoDBTest
         Assert.NotNull(queuedItemAfterDequeue);
         Assert.Equal(QueuedItemStatus.StatusFailed, queuedItemAfterDequeue.Statuses[0].Status);
         Assert.NotNull(queuedItemAfterDequeue.Statuses[0].NextReevaluation);
-        Assert.True(queuedItemAfterDequeue.Statuses[0].NextReevaluation >= queuedItemAfterDequeue.Statuses[0].Timestamp);
+        Assert.True(queuedItemAfterDequeue.Statuses[0].NextReevaluation >= queuedItemAfterDequeue.Statuses[0].Timestamp, 
+            $"Expected {queuedItemAfterDequeue.Statuses[0].NextReevaluation} to be gte ${queuedItemAfterDequeue.Statuses[0].Timestamp}");
 
         Assert.Equal(QueuedItemStatus.StatusProcessing, queuedItemAfterDequeue.Statuses[1].Status);
         Assert.Equal(QueuedItemStatus.StatusEnqueued, queuedItemAfterDequeue.Statuses[2].Status);
