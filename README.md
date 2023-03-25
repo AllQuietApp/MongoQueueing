@@ -3,7 +3,7 @@ Message Queueing for .NET Core with MongoDB.
 
 ![Test Workflow Status Badge](https://github.com/AllQuietApp/MongoQueueing/actions/workflows/test.yml/badge.svg)
 
-## Motivatation
+## Motivation
 
 ### Use Cases
 - You have a simple website where users can register. You want to send out a double-opt-in email asynchronously after registering.
