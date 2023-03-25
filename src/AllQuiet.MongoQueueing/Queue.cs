@@ -9,6 +9,15 @@ public class Queue<TPayload> : IQueue<TPayload>
     private readonly ILogger<Queue<TPayload>> logger;
     private readonly IQueuedItemRepository<TPayload> queuedItemRepository;
     private readonly QueueOptions queueOptions;
+	private static readonly int[] RetryIntervalsInSeconds = new []
+	{
+		1,
+		2,
+		10,
+		30,
+		60,
+		3600,
+	};
 
     public Queue(ILogger<Queue<TPayload>> logger, IQueuedItemRepository<TPayload> queuedItemRepository, IOptions<QueueOptions> queueOptions)
 	{
@@ -56,12 +65,12 @@ public class Queue<TPayload> : IQueue<TPayload>
 	private DateTime? CalculateNextReevalation(QueuedItem<TPayload> item)
 	{
 		var failedCount = item.Statuses.Count(status => status.Status == QueuedItemStatus.StatusFailed);
-		if (failedCount > 6)
+		if (failedCount > RetryIntervalsInSeconds.Length - 1)
 		{
 			return null;
 		}
 		
-		return DateTime.UtcNow.AddSeconds(failedCount * Math.Exp(failedCount * 2));
+		return item.Statuses[0].Timestamp.AddSeconds(RetryIntervalsInSeconds[failedCount]);
 	}
 
 	public async Task<QueuedItem<TPayload>?> DequeueAsync(Func<TPayload, Task> processAsync)
