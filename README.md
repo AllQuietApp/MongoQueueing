@@ -1,7 +1,8 @@
 # MongoQueueing
 Message Queueing for .NET Core with MongoDB.
 
-![Test Workflow Status Badge](https://github.com/AllQuietApp/MongoQueueing/actions/workflows/test.yml/badge.svg)
+[![NuGet version](https://img.shields.io/nuget/v/AllQuiet.MongoQueueing.svg?style=flat)](https://www.nuget.org/packages/AllQuiet.MongoQueueing)
+[![Test Workflow Status Badge](https://github.com/AllQuietApp/MongoQueueing/actions/workflows/test.yml/badge.svg)](https://github.com/AllQuietApp/MongoQueueing/actions/workflows/test.yml)
 
 ## Motivation
 
