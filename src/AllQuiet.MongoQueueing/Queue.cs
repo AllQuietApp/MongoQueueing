@@ -19,7 +19,6 @@ public class Queue<TPayload> : IQueue<TPayload>
 
 	public async Task<QueuedItem<TPayload>> EnqueueAsync(TPayload payload, DateTime? nextReevaluation = null)
 	{
-		var id = new TimestampId();
 		var queuedItem = new QueuedItem<TPayload>
 		(
 			new TimestampId(), 
