@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3F0B5A61-19E4-4024-9598-7EB45C53257E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AllQuiet.MongoQueueing", "src\AllQuiet.MongoQueueing\AllQuiet.MongoQueueing.csproj", "{439D2A15-BEEF-4F16-B872-09AD9022F907}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AllQuiet.MongoQueueing.Tests", "src\AllQuiet.MongoQueueing.Tests\AllQuiet.MongoQueueing.Tests.csproj", "{0F63BFC4-86A2-42D8-A743-C9D5EA7D3A63}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{439D2A15-BEEF-4F16-B872-09AD9022F907}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{439D2A15-BEEF-4F16-B872-09AD9022F907}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{439D2A15-BEEF-4F16-B872-09AD9022F907}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{439D2A15-BEEF-4F16-B872-09AD9022F907}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F63BFC4-86A2-42D8-A743-C9D5EA7D3A63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F63BFC4-86A2-42D8-A743-C9D5EA7D3A63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F63BFC4-86A2-42D8-A743-C9D5EA7D3A63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F63BFC4-86A2-42D8-A743-C9D5EA7D3A63}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{439D2A15-BEEF-4F16-B872-09AD9022F907} = {3F0B5A61-19E4-4024-9598-7EB45C53257E}
+		{0F63BFC4-86A2-42D8-A743-C9D5EA7D3A63} = {3F0B5A61-19E4-4024-9598-7EB45C53257E}
+	EndGlobalSection
+EndGlobal

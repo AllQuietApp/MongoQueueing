@@ -1,0 +1,20 @@
+name: Test
+on: push
+  
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core SDK 6.0
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: "6.0"
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: 6.0.2
+      - run: dotnet restore
+      - run: dotnet build
+      - name: dotnet test
+        run: dotnet test --no-restore --verbosity normal

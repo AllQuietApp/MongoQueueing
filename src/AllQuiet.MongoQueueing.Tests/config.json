@@ -1,0 +1,5 @@
+﻿{
+  "ConnectionStrings": {
+    "MongoDbIntegrationTests": "mongodb://localhost:27017"
+  }
+}
