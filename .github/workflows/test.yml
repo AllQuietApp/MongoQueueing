@@ -1,8 +1,5 @@
 name: Test
-on:
-  push:
-    tags-ignore:
-      - '**'
+on: [push]
 jobs:
   Test:
     runs-on: ubuntu-latest
