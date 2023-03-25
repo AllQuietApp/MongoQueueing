@@ -22,7 +22,7 @@ public class QueueBackgroundService<TPayload> : BackgroundService
 
     protected async override Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        this.logger.LogInformation($"QueueBackgroundService for {typeof(TPayload).Name} starting at interval {this.options.ServiceQueueInterval}...");
+        this.logger.LogInformation($"QueueBackgroundService for {typeof(TPayload).Name} starting at interval {this.options.PollInterval}...");
         InitializeServices();
         this.logger.LogInformation($"QueueBackgroundService for {typeof(TPayload).Name} started.");
         await StartDequeueing(cancellationToken);
@@ -30,7 +30,7 @@ public class QueueBackgroundService<TPayload> : BackgroundService
 
     private async Task StartDequeueing(CancellationToken cancellationToken)
     {
-        using PeriodicTimer timer = new PeriodicTimer(options.ServiceQueueInterval);
+        using PeriodicTimer timer = new PeriodicTimer(options.PollInterval);
         while (!cancellationToken.IsCancellationRequested)
         {
             var item = await this.DequeueAsync();
@@ -44,12 +44,12 @@ public class QueueBackgroundService<TPayload> : BackgroundService
 
     private void InitializeServices()
     {
-        this.logger.LogInformation($"InitializeServices for {typeof(TPayload).Name} started.");
+        this.logger.LogDebug($"InitializeServices for {typeof(TPayload).Name} started.");
         try
         {
             using (var scope = this.serviceProvider.CreateScope())
             {
-                this.logger.LogInformation($"CreateScope done. Getting required Service...");
+                this.logger.LogDebug($"CreateScope done. Getting required Service...");
                 scope.ServiceProvider.GetRequiredService<IQueueProcessor<TPayload>>();
             }
         }
@@ -58,7 +58,7 @@ public class QueueBackgroundService<TPayload> : BackgroundService
             logger.LogError(ex, $"InitializeServices failed for {typeof(TPayload).Name}");
         }
         
-        this.logger.LogInformation($"InitializeServices for {typeof(TPayload).Name} finished.");
+        this.logger.LogDebug($"InitializeServices for {typeof(TPayload).Name} finished.");
     }
 
     private async Task<QueuedItem<TPayload>?> DequeueAsync()

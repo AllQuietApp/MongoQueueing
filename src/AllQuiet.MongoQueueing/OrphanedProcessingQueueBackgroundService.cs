@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AllQuiet.MongoQueueing;
 
@@ -7,18 +8,20 @@ public class OrphanedProcessingQueueBackgroundService<TPayload> : BackgroundServ
 {
     protected readonly ILogger<OrphanedProcessingQueueBackgroundService<TPayload>> logger;
     private readonly IQueue<TPayload> queue;
+    private readonly QueueOptions options;
 
-    public OrphanedProcessingQueueBackgroundService(ILogger<OrphanedProcessingQueueBackgroundService<TPayload>> logger, IQueue<TPayload> queue)
+    public OrphanedProcessingQueueBackgroundService(ILogger<OrphanedProcessingQueueBackgroundService<TPayload>> logger, IQueue<TPayload> queue, IOptions<QueueOptions> options)
     {
         this.logger = logger;
         this.queue = queue;
+        this.options = options.Value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         this.logger.LogInformation($"OrphanedProcessingQueueBackgroundService for {typeof(TPayload).Name} started.");
                 
-        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+        using PeriodicTimer timer = new PeriodicTimer(options.OrphanedPollInterval);
         while (
             !cancellationToken.IsCancellationRequested &&
             await timer.WaitForNextTickAsync(cancellationToken))

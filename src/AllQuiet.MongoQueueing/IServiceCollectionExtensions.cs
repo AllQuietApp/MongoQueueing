@@ -4,13 +4,13 @@ namespace AllQuiet.MongoQueueing;
 
 public static class IServiceCollectionExtensions
 {
-    public static void AddQueueingFor<TPayload, TProcessor>(this IServiceCollection services)
+    public static void AddDedicatedQueueingFor<TPayload, TProcessor>(this IServiceCollection services)
         where TProcessor : class, IQueueProcessor<TPayload>
     {
-        AddQueueingFor<TPayload, TProcessor, QueuedItemRepository<TPayload>>(services);
+        AddDedicatedQueueingFor<TPayload, TProcessor, QueuedItemRepository<TPayload>>(services);
     }
 
-    public static void AddQueueingFor<TPayload, TProcessor, TQueuedItemRepository>(this IServiceCollection services)
+    public static void AddDedicatedQueueingFor<TPayload, TProcessor, TQueuedItemRepository>(this IServiceCollection services)
         where TProcessor : class, IQueueProcessor<TPayload>
         where TQueuedItemRepository : QueuedItemRepository<TPayload>
     {
@@ -24,7 +24,7 @@ public static class IServiceCollectionExtensions
 
     public static void AddGenericQueueing(this IServiceCollection services)
     {
-        AddQueueingFor<GenericQueueEvent, GenericQueueProcessor>(services);
+        AddDedicatedQueueingFor<GenericQueueEvent, GenericQueueProcessor>(services);
         services.AddSingleton<IGenericQueue, GenericQueue>();
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AllQuiet.MongoQueueing;
 
@@ -9,12 +10,14 @@ public class FailedQueueBackgroundService<TPayload> : BackgroundService
     protected readonly IServiceProvider serviceProvider;
     protected readonly ILogger<FailedQueueBackgroundService<TPayload>> logger;
     private readonly IQueue<TPayload> queue;
+    private readonly QueueOptions options;
 
     public FailedQueueBackgroundService(IServiceProvider serviceProvider)
     {
         this.serviceProvider = serviceProvider;
         this.logger = this.serviceProvider.GetRequiredService<ILogger<FailedQueueBackgroundService<TPayload>>>();
         this.queue = this.serviceProvider.GetRequiredService<IQueue<TPayload>>();
+        this.options = this.serviceProvider.GetRequiredService<IOptions<QueueOptions>>().Value;
     }
 
     protected async override Task ExecuteAsync(CancellationToken cancellationToken)
@@ -34,7 +37,7 @@ public class FailedQueueBackgroundService<TPayload> : BackgroundService
 
     private async Task StartDequeueing(CancellationToken cancellationToken)
     {
-        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromMilliseconds(1000));
+        using PeriodicTimer timer = new PeriodicTimer(this.options.FailedPollInterval);
         while (!cancellationToken.IsCancellationRequested)
         {
             var item = await this.DequeueFailedAsync();
