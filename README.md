@@ -17,7 +17,7 @@ Message Queueing for .NET Core with MongoDB
 
 ### What about RabbitMQ, ZeroMQ, Kafka etc?
 MongoQueueing was created during the development of the All Quiet incident escalation platform. We wanted to keep our tech stack as simple as possible. 
-Since we were using MongoDB as a database, we didn't want to introduce more moving parts in our infrastructe. 
+Since we were using MongoDB as a database, we didn't want to introduce more moving parts in our infrastructure. 
 
 It's not a replacement for near-realtime queueing systems like RabbitMQ. Neither does it provide pub/sub functionalities. It's just really a dead simple mechanism to execute tasks asynchronously in your .NET Core application. Don't use it to create your fancy distributed mircoservice architecture. Use it for the above mentioned use cases.
 
