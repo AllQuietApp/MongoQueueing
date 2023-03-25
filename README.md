@@ -161,7 +161,7 @@ Run the unit and integration tests in the project's root (where the sln is locat
     dotnet test
 
 ## Contributing
-If you encounter a bug or have a feature request, please use our [Issue Tracker](https://github.com/AllQuietApp/MongoQueueing/issues/new) at GitHub. 
+If you encounter a bug or have a feature request, please use our [Issue Tracker](https://github.com/AllQuietApp/MongoQueueing/issues) at GitHub. 
 The project is also open to contributions, so feel free to fork the project and open pull requests.
     
 ## License
