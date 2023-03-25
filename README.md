@@ -103,7 +103,7 @@ public class YourService
 ```
 
 ### Add Dedicated Queueing
-**Attention:** Be careful too add too many dedicated queues because each queue will add a .NET Backgrouns Service that will periodically poll your mongo database.
+**Attention:** Be careful to add too many dedicated queues because each queue will add a .NET Background Service that will periodically poll your mongo database.
 
 `Program.cs`
 ```c#
