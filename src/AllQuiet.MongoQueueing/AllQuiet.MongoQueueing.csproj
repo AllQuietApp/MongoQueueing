@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,4 +14,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.19.0" />
   </ItemGroup>
+
+  
+    <ItemGroup>
+      <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 </Project>
