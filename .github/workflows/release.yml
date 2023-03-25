@@ -24,6 +24,11 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release -p:Version=${{ github.ref_name }} --no-restore
       
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: 6.0.2
+
       - name: Run tests
         run: dotnet test /p:Configuration=Release --no-restore --no-build --verbosity normal
 
