@@ -1,23 +1,23 @@
 # MongoQueueing
-Message Queueing for .NET Core with MongoDB
+Message Queueing for .NET Core with MongoDB.
 
 ![Test Workflow Status Badge](https://github.com/AllQuietApp/MongoQueueing/actions/workflows/test.yml/badge.svg)
 
 ## Motivatation
 
 ### Use Cases
-- You have a simple website where users can register. You want to send out a double-opt-in email asynchronously after registering
-- You want to send out a reminder email after 24h after registering
+- You have a simple website where users can register. You want to send out a double-opt-in email asynchronously after registering.
+- You want to send out a reminder email after 24h after registering.
 - You want to call a third party service that can fail (your own network, downtime of service etc.). You want to retry the call in case of failure.
 
 ### Characteristics
 - Supports high availability out of the box. You can run as many processes as you like. MongoDB's atomic operations ensure that messages are processed only once.
 - Guarantees FIFO dequeueing but cannot guarantee order of execution of your messages when running multiple processes.
-- Supports different queues, so you can have high priority queues.
+- Supports different queues, so you can have a high priority queue.
 - Supports scheduling of messages (define the time when a message should be dequeued)
 
 ### What about RabbitMQ, ZeroMQ, Kafka etc?
-MongoQueueing was created during the development of the All Quiet incident escalation platform. We wanted to keep our tech stack as simple as possible. 
+MongoQueueing was created during the development of the [All Quiet incident escalation platform](https://allquiet.app). We wanted to keep our tech-stack as simple as possible. 
 Since we were using MongoDB as a database, we didn't want to introduce more moving parts in our infrastructure. 
 
 It's not a replacement for near-realtime queueing systems like RabbitMQ. Neither does it provide pub/sub functionalities. It's just really a dead simple mechanism to execute tasks asynchronously in your .NET Core application. Don't use it to create your fancy distributed mircoservice architecture. Use it for the above mentioned use cases.
@@ -160,6 +160,9 @@ Run the unit and integration tests in the project's root (where the sln is locat
 
     dotnet test
 
+## Contributing
+If you encounter a bug or have a feature request, please use our [Issue Tracker](https://github.com/AllQuietApp/MongoQueueing/issues/new) at GitHub. 
+The project is also open to contributions, so feel free to fork the project and open pull requests.
     
 ## License
 MIT License
@@ -183,6 +186,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-
-
