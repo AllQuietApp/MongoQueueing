@@ -1,6 +1,7 @@
 using AllQuiet.MongoQueueing.MongoDB;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace AllQuiet.MongoQueueing.Tests.Queuing;
@@ -15,7 +16,7 @@ public class QueueTest : MongoDBTest
         var collectionName = "queuedItemsSomePayload";
         var repository = new QueuedItemRepository<SomePayload>(A.Dummy<ILogger<QueuedItemRepository<SomePayload>>>(), this.MongoDatabase, collectionName);
         this.collection = this.MongoDatabase.GetCollection<QueuedItem<SomePayload>>(collectionName);
-        this.sut = new Queue<SomePayload>(A.Fake<ILogger<Queue<SomePayload>>>(), repository); 
+        this.sut = new Queue<SomePayload>(A.Fake<ILogger<Queue<SomePayload>>>(), repository, new OptionsWrapper<QueueOptions>(new QueueOptions())); 
     }
 
     [Fact]

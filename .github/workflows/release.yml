@@ -1,0 +1,33 @@
+name: Release
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "*"
+jobs:
+  Publish:
+    env:
+      BUILD_CONFIG: 'Release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.0.5
+
+      - name: Restore NuGet dependencies
+        run: nuget restore $SOLUTION
+      
+      - name: Setup .NET Core SDK 6.0
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: "6.0"
+
+      - name: Build
+        run: dotnet build --configuration $BUILD_CONFIG -p:Version=${{ github.ref_name }} --no-restore
+      
+      - name: Run tests
+        run: dotnet test /p:Configuration=$env:BUILD_CONFIG --no-restore --no-build --verbosity normal
+
+      - name: Push to NuGet
+        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}

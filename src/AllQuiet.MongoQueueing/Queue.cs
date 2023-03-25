@@ -1,18 +1,20 @@
 using AllQuiet.MongoQueueing.MongoDB;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AllQuiet.MongoQueueing;
 
 public class Queue<TPayload> : IQueue<TPayload>
 {
-	private static readonly TimeSpan MAX_PROCESSING_TIME = TimeSpan.FromMinutes(-30);
     private readonly ILogger<Queue<TPayload>> logger;
     private readonly IQueuedItemRepository<TPayload> queuedItemRepository;
+    private readonly QueueOptions queueOptions;
 
-    public Queue(ILogger<Queue<TPayload>> logger, IQueuedItemRepository<TPayload> queuedItemRepository)
+    public Queue(ILogger<Queue<TPayload>> logger, IQueuedItemRepository<TPayload> queuedItemRepository, IOptions<QueueOptions> queueOptions)
 	{
 		this.logger = logger;
 		this.queuedItemRepository = queuedItemRepository;
+		this.queueOptions = queueOptions.Value;
 	}
 
 	public async Task<QueuedItem<TPayload>> EnqueueAsync(TPayload payload, DateTime? nextReevaluation = null)
@@ -75,7 +77,7 @@ public class Queue<TPayload> : IQueue<TPayload>
 
     public async Task<QueuedItem<TPayload>?> EnqueueOrphanedProcessingAsync()
     {
-		return await this.queuedItemRepository.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusProcessing, QueuedItemStatus.StatusEnqueued, DateTime.UtcNow, System.DateTime.UtcNow.Add(MAX_PROCESSING_TIME));
+		return await this.queuedItemRepository.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusProcessing, QueuedItemStatus.StatusEnqueued, DateTime.UtcNow, System.DateTime.UtcNow.Add(this.queueOptions.ProcessingTimeout));
     }
 }
 
