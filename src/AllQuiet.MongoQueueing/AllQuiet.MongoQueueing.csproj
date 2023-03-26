@@ -12,7 +12,7 @@
     <Title>MongoQueueing - High Availiability Message Queueing for .NET Core with MongoDB.</Title>
     <Authors>All Quiet GmbH, Mads Quist, Contributors</Authors>
     <Company>All Quiet GmbH</Company>
-    <PackageTags>queueing;queue;message-queueing;message-queue;messaging;MongoDB;mongo;asynchronous;retries;resilience;mongo-db;high-availiablity;</PackageTags>
+    <PackageTags>queueing;queue;message-queueing;message-queue;messaging;MongoDB;mongo;asynchronous;retries;resilience;mongo-db;high-availability;</PackageTags>
     <PackageReleaseNotes>https://github.com/AllQuietApp/MongoQueueing/releases</PackageReleaseNotes>
     <PackageDescription>
 Message queueing for your .NET Core project using MongoDB as the data source. 
@@ -24,7 +24,7 @@ Use Cases:
 - You have other long running tasks that should be executed after a user's operation.
 
 Characteristics
-- Supports high availability out of the box. You can run as many processes as you like. MongoDB's atomic operations ensure that messages are processed only once.
+- Supports high-availability out of the box. You can run as many processes as you like. MongoDB's atomic operations ensure that messages are processed only once.
 - Guarantees FIFO dequeueing but cannot guarantee order of execution of your messages when running multiple processes.
 - Supports different queues, so you can have a high priority queue.
 - Supports scheduling of messages (define the time when a message should be dequeued)
