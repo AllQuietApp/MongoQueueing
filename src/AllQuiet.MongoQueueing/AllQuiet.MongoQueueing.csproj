@@ -5,13 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AllQuietApp/MongoQueueing.git</RepositoryUrl> 
     <RepositoryType>git</RepositoryType> 
     <Title>MongoQueueing - High Availiability Message Queueing for .NET Core with MongoDB.</Title>
     <Authors>All Quiet GmbH, Mads Quist, Contributors</Authors>
     <Company>All Quiet GmbH</Company>
-    <PackageTags>queueing;queue;message queueing;message queue;messaging;MongoDB;mongo;asynchronous;retries;resilience;mongo db;high availiablity;</PackageTags>
+    <PackageTags>queueing;queue;message-queueing;message-queue;messaging;MongoDB;mongo;asynchronous;retries;resilience;mongo-db;high-availiablity;</PackageTags>
     <PackageReleaseNotes>https://github.com/AllQuietApp/MongoQueueing/releases</PackageReleaseNotes>
     <PackageDescription>
 Message queueing for your .NET Core project using MongoDB as the data source. 
@@ -28,10 +29,6 @@ Characteristics
 - Supports different queues, so you can have a high priority queue.
 - Supports scheduling of messages (define the time when a message should be dequeued)
     </PackageDescription>
-  </PropertyGroup>
-
-  <PropertyGroup Label="Package properties">
-
   </PropertyGroup>
 
   <ItemGroup>

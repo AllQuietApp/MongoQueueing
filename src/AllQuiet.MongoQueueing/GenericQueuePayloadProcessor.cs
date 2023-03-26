@@ -18,7 +18,7 @@ namespace AllQuiet.MongoQueueing
             }
         }
 
-        public GenericQueuePayloadProcessor(IQueueProcessor<TPayload> queueProcessor)
+        public GenericQueuePayloadProcessor()
         {
             this.payloadType = typeof(TPayload);
         }
