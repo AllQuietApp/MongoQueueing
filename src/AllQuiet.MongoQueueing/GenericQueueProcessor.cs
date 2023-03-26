@@ -16,7 +16,7 @@ namespace AllQuiet.MongoQueueing
             this.payloadProcessors = payloadProcessors;
         }
 
-        public async Task ProcessQueuedItemAsync(GenericQueueEvent genericQueueEvent)
+        public async Task ProcessAsync(GenericQueueEvent genericQueueEvent)
         {
             if (genericQueueEvent.Payload == null)
             {

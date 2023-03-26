@@ -9,14 +9,20 @@ namespace AllQuiet.MongoQueueing
             this.queue = queue;
         }
 
-        public async Task EnqueueAsync(object payload, DateTime? nextReevaluation = null)
+        public async Task<QueuedItem<GenericQueueEvent>> EnqueueAsync(object payload, DateTime? nextReevaluation = null)
         {
-            await this.queue.EnqueueAsync(new GenericQueueEvent { Payload = payload }, nextReevaluation);
+            return await this.queue.EnqueueAsync(new GenericQueueEvent { Payload = payload }, nextReevaluation);
         }
     }
 
     public interface IGenericQueue
-    {
-        Task EnqueueAsync(object payload, DateTime? nextReevaluation = null);
+    {	
+        /// <summary>
+        /// Enqueues a new payload on the generic queue.
+        /// </summary>
+        /// <param name="payload">The payload to enqueue.</param>
+        /// <param name="nextReevaluation">If null, then the payload is processed as soon as possible. If specified, the payload will be processed at earliest after the provided DateTime. Use this param to schedule processing in the future.</param>
+        /// <returns>The queued item with the attached payload.</returns>
+        Task<QueuedItem<GenericQueueEvent>> EnqueueAsync(object payload, DateTime? nextReevaluation = null);
     }
 }

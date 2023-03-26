@@ -2,6 +2,10 @@ using MongoDB.Bson.Serialization;
 
 namespace AllQuiet.MongoQueueing
 {
+    /// <summary>
+    /// Derive from this class to process payloads that are enqueued on the generic queue.
+    /// </summary>
+    /// <typeparam name="TPayload">The payload type that you want to process.</typeparam>
     public abstract class GenericQueuePayloadProcessor<TPayload> : IGenericQueuePayloadProcessor
     {
         private readonly Type payloadType;
@@ -14,7 +18,7 @@ namespace AllQuiet.MongoQueueing
             }
         }
 
-        public GenericQueuePayloadProcessor()
+        public GenericQueuePayloadProcessor(IQueueProcessor<TPayload> queueProcessor)
         {
             this.payloadType = typeof(TPayload);
         }
@@ -29,6 +33,11 @@ namespace AllQuiet.MongoQueueing
             await this.ProcessAsync((TPayload)payload);
         }
 
+        /// <summary>
+        /// Should process the payload. When the functions is executed successfully without throwing an exception, the payload is marked as successfully <c>processed</c>.
+        /// If an exception is thrown, the payload will be marked as <c>failed</c> and execution will be retried.
+        /// </summary>
+        /// <param name="payload">The payload which was dequeued.</param>
         protected abstract Task ProcessAsync(TPayload payload);
     }
 

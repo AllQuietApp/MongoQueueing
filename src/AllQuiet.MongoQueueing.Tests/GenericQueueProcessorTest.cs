@@ -33,7 +33,7 @@ public class GenericQueueProcessorTest
         A.CallTo(() => this.payloadProcessor2.CanProcess(A<object>.That.IsInstanceOf(typeof(DummyPayload)))).Returns(true);
         
         // Act
-        await this.sut.ProcessQueuedItemAsync(payload);
+        await this.sut.ProcessAsync(payload);
     
         // Assert
         A.CallTo(() => this.payloadProcessor1.ProcessAsync(A<object>._)).MustNotHaveHappened();

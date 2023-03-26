@@ -1,5 +1,5 @@
 # MongoQueueing
-Message Queueing for .NET Core with MongoDB.
+High Availiability Message Queueing for .NET Core with MongoDB.
 
 [![NuGet version](https://img.shields.io/nuget/v/AllQuiet.MongoQueueing.svg?style=flat)](https://www.nuget.org/packages/AllQuiet.MongoQueueing)
 [![Test Workflow Status Badge](https://github.com/AllQuietApp/MongoQueueing/actions/workflows/test.yml/badge.svg)](https://github.com/AllQuietApp/MongoQueueing/actions/workflows/test.yml)
@@ -7,9 +7,10 @@ Message Queueing for .NET Core with MongoDB.
 ## Motivation
 
 ### Use Cases
-- You have a simple website where users can register. You want to send out a double-opt-in email asynchronously after registering.
+- You have a website where users can register. You want to send out a double-opt-in email asynchronously after registering.
 - You want to send out a reminder email after 24h after registering.
 - You want to call a third party service that can fail (your own network, downtime of service etc.). You want to retry the call in case of failure.
+- You have other long running tasks that should be executed after a user's operation.
 
 ### Characteristics
 - Supports high availability out of the box. You can run as many processes as you like. MongoDB's atomic operations ensure that messages are processed only once.
@@ -47,7 +48,7 @@ var mongoClient = new MongoClient("mongodb://localhost:27017");
 builder.Services.AddSingleton<IMongoDatabase>(mongoClient.GetDatabase("MyDatabaseName"));
 
 // Option 2
-// Register an IMongoQueuingDatabaseContext instance if you specifally need to control through DI which database should be used
+// Register an IMongoQueuingDatabaseContext instance if you specifically need to control through DI which database should be used
 var mongoClient = new MongoClient("mongodb://localhost:27017");
 builder.Services.AddSingleton<IMongoQueuingDatabaseContext>(new MongoQueuingDatabaseContext(mongoClient.GetDatabase("MyDatabaseName")));
 ```
@@ -110,22 +111,35 @@ public class YourService
 `Program.cs`
 ```c#
 // This will add a dedicated queue which will only contain payloads of type YourPayload.
-builder.Services.AddDedicatedQueueingFor<YourPayload, YourPayloadProcessor>();
+builder.Services.AddDedicatedQueueingFor<YourDedicatedPayload, YourDedicatedPayloadProcessor>();
 ```
 
-Enqueue new payloads by using `IQueue<T>`
+For dedicated processors, you only need to implement the interface `IQueueProcessor<T>` instead of deriving from `GenericQueuePayloadProcessor<T>`:
+
+`YourDedicatedPayloadProcessor.cs`
+```c#
+public class YourDedicatedPayloadProcessor : IQueueProcessor<YourDedicatedPayload>
+{
+    public async Task ProcessAsync(YourDedicatedPayload yourPayload)
+    {
+        // Do your processing here
+    }
+}
+```
+
+Enqueue new payloads for your dedicated queue by using `IQueue<T>`
 ```c#
 public class YourService
 {
-    private readonly IQueue<YourPayload> yourPayloadQueue;
-    public YourService(IQueue<YourPayload> yourPayloadQueue)
+    private readonly IQueue<YourDedicatedPayload> yourPayloadQueue;
+    public YourService(IQueue<YourDedicatedPayload> yourPayloadQueue)
     {
         this.yourPayloadQueue = yourPayloadQueue;
     }
 
     public async Task EnqueueSomething()
     {
-        await this.yourPayloadQueue.EnqueueAsync(new YourPayload());
+        await this.yourPayloadQueue.EnqueueAsync(new YourDedicatedPayload());
     }
 }
 ```

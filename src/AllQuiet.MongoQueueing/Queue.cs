@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace AllQuiet.MongoQueueing;
 
-public class Queue<TPayload> : IQueue<TPayload>
+public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
 {
     private readonly ILogger<Queue<TPayload>> logger;
     private readonly IQueuedItemRepository<TPayload> queuedItemRepository;
@@ -89,12 +89,22 @@ public class Queue<TPayload> : IQueue<TPayload>
     }
 }
 
-public interface IQueue<TPayload>
+public interface IDequeueableQueue<TPayload> : IQueue<TPayload>
 {
-	Task<QueuedItem<TPayload>> EnqueueAsync(TPayload payload, DateTime? nextReevaluation = null);
 	Task<QueuedItem<TPayload>?> DequeueAsync(Func<TPayload, Task> processAsync);
     Task<QueuedItem<TPayload>?> DequeueFailedAsync(Func<TPayload, Task> processAsync);
     Task<QueuedItem<TPayload>?> EnqueueOrphanedProcessingAsync();
+}
+
+public interface IQueue<TPayload>
+{
+	/// <summary>
+    /// Enqueues a new payload on the current queue.
+	/// </summary>
+	/// <param name="payload">The payload to enqueue.</param>
+	/// <param name="nextReevaluation">If null, then the payload is processed as soon as possible. If specified, the payload will be processed at earliest after the provided DateTime. Use this param to schedule processing in the future.</param>
+	/// <returns>The queued item with the attached payload.</returns>
+	Task<QueuedItem<TPayload>> EnqueueAsync(TPayload payload, DateTime? nextReevaluation = null);
 }
 
 public record QueuedItem<TPayload>(TimestampId Id, IList<QueuedItemStatus> Statuses, TPayload Payload);

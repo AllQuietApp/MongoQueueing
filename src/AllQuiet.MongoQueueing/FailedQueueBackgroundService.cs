@@ -9,14 +9,14 @@ public class FailedQueueBackgroundService<TPayload> : BackgroundService
 {
     protected readonly IServiceProvider serviceProvider;
     protected readonly ILogger<FailedQueueBackgroundService<TPayload>> logger;
-    private readonly IQueue<TPayload> queue;
+    private readonly IDequeueableQueue<TPayload> queue;
     private readonly QueueOptions options;
 
     public FailedQueueBackgroundService(IServiceProvider serviceProvider)
     {
         this.serviceProvider = serviceProvider;
         this.logger = this.serviceProvider.GetRequiredService<ILogger<FailedQueueBackgroundService<TPayload>>>();
-        this.queue = this.serviceProvider.GetRequiredService<IQueue<TPayload>>();
+        this.queue = this.serviceProvider.GetRequiredService<IDequeueableQueue<TPayload>>();
         this.options = this.serviceProvider.GetRequiredService<IOptions<QueueOptions>>().Value;
     }
 
@@ -57,7 +57,7 @@ public class FailedQueueBackgroundService<TPayload> : BackgroundService
                 using (var scope = this.serviceProvider.CreateScope())
                 {
                     var queueProcessor = scope.ServiceProvider.GetRequiredService<IQueueProcessor<TPayload>>();
-                    await queueProcessor.ProcessQueuedItemAsync(payload);
+                    await queueProcessor.ProcessAsync(payload);
                 }
             });
         }

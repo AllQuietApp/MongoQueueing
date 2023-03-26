@@ -7,10 +7,10 @@ namespace AllQuiet.MongoQueueing;
 public class OrphanedProcessingQueueBackgroundService<TPayload> : BackgroundService
 {
     protected readonly ILogger<OrphanedProcessingQueueBackgroundService<TPayload>> logger;
-    private readonly IQueue<TPayload> queue;
+    private readonly IDequeueableQueue<TPayload> queue;
     private readonly QueueOptions options;
 
-    public OrphanedProcessingQueueBackgroundService(ILogger<OrphanedProcessingQueueBackgroundService<TPayload>> logger, IQueue<TPayload> queue, IOptions<QueueOptions> options)
+    public OrphanedProcessingQueueBackgroundService(ILogger<OrphanedProcessingQueueBackgroundService<TPayload>> logger, IDequeueableQueue<TPayload> queue, IOptions<QueueOptions> options)
     {
         this.logger = logger;
         this.queue = queue;
