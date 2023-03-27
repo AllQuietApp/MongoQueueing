@@ -48,9 +48,9 @@ var mongoClient = new MongoClient("mongodb://localhost:27017");
 builder.Services.AddSingleton<IMongoDatabase>(mongoClient.GetDatabase("MyDatabaseName"));
 
 // Option 2
-// Register an IMongoQueuingDatabaseContext instance if you specifically need to control through DI which database should be used
+// Register an IMongoQueueingDatabaseContext instance if you specifically need to control through DI which database should be used
 var mongoClient = new MongoClient("mongodb://localhost:27017");
-builder.Services.AddSingleton<IMongoQueuingDatabaseContext>(new MongoQueuingDatabaseContext(mongoClient.GetDatabase("MyDatabaseName")));
+builder.Services.AddSingleton<IMongoQueueingDatabaseContext>(new MongoQueueingDatabaseContext(mongoClient.GetDatabase("MyDatabaseName")));
 ```
 
 ### Add Generic Queueing
@@ -61,6 +61,8 @@ Since the queue is processed FIFO you cannot control prioritized dequeueing per 
 `Program.cs`
 ```c#
 var builder = WebApplication.CreateBuilder(args);
+
+// This will register an instance of IGenericQueue for your usage
 builder.Services.AddGenericQueueing();
 
 // For each payload type you want to process in a queue, register a processor:
@@ -93,6 +95,8 @@ Enqueue new payloads by using IGenericQueue
 public class YourService
 {
     private readonly IGenericQueue genericQueue;
+
+    // An instance of IGenericQueue is automatically provided by the DI container
     public YourService(IGenericQueue genericQueue)
     {
         this.genericQueue = genericQueue;
@@ -111,6 +115,7 @@ public class YourService
 `Program.cs`
 ```c#
 // This will add a dedicated queue which will only contain payloads of type YourPayload.
+// An instance of IQueue<YourDedicatedPayload> will be registererd for your usage.
 builder.Services.AddDedicatedQueueingFor<YourDedicatedPayload, YourDedicatedPayloadProcessor>();
 ```
 
@@ -132,6 +137,8 @@ Enqueue new payloads for your dedicated queue by using `IQueue<T>`
 public class YourService
 {
     private readonly IQueue<YourDedicatedPayload> yourPayloadQueue;
+    
+    // An instance of IQueue<YourDedicatedPayload> is automatically provided by the DI container
     public YourService(IQueue<YourDedicatedPayload> yourPayloadQueue)
     {
         this.yourPayloadQueue = yourPayloadQueue;

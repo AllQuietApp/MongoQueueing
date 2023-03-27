@@ -19,7 +19,7 @@ public abstract class MongoRepository<T>
     private bool indexesWereCreated;
     private object indexesWereCreatedLock = new ();
 
-    public MongoRepository(ILogger logger, IMongoQueuingDatabaseContext databaseContext, string collectionName) : this(
+    public MongoRepository(ILogger logger, IMongoQueueingDatabaseContext databaseContext, string collectionName) : this(
         logger, databaseContext.Database, collectionName)
     {
 
