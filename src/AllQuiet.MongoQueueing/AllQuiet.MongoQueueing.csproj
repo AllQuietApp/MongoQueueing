@@ -12,6 +12,8 @@
     <Title>MongoQueueing - High Availiability Message Queueing for .NET Core with MongoDB.</Title>
     <Authors>All Quiet GmbH, Mads Quist, Contributors</Authors>
     <Company>All Quiet GmbH</Company>
+    <PackageIcon>PackageIcon.png</PackageIcon>
+    <PackageProjectUrl>https://allquiet.app/open-source/mongo-queueing</PackageProjectUrl>
     <PackageTags>queueing;queue;message-queueing;message-queue;messaging;MongoDB;mongo;asynchronous;retries;resilience;mongo-db;high-availability;</PackageTags>
     <PackageReleaseNotes>https://github.com/AllQuietApp/MongoQueueing/releases</PackageReleaseNotes>
     <PackageDescription>
@@ -41,5 +43,6 @@ Characteristics
   
     <ItemGroup>
       <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+      <None Include="PackageIcon.png" Pack="true" PackagePath="\"/>
     </ItemGroup>
 </Project>
