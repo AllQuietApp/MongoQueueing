@@ -33,7 +33,7 @@ public class QueueChangeStreamBackgroundService<TPayload> : QueueBackgroundServi
                     {
                         foreach (var change in cursor.Current)
                         {
-                            await this.DequeueAsync(new TimestampId((ulong)change.DocumentKey.AsInt64));
+                            await this.DequeueAsync(new TimestampId((ulong)change.DocumentKey["_id"].AsInt64));
                         }
                     }
                 }
