@@ -18,9 +18,13 @@ public class QueuedItemRepository<TPayload> : MongoRepository<QueuedItem<TPayloa
     }
 
     public async Task<QueuedItem<TPayload>> FindOneByStatusAndUpdateStatusAtomicallyAsync(
-        string statusBeforeUpdate, string statusAfterUpdate, DateTime nextReevaluationBefore, DateTime? statusTimestampBefore = null)
+        string statusBeforeUpdate, string statusAfterUpdate, DateTime nextReevaluationBefore, DateTime? statusTimestampBefore = null, TimestampId? queuedItemId = null)
     {
         var filter = GetFilterFindOneByStatusAndUpdateStatusAtomicallyAsync(statusBeforeUpdate, nextReevaluationBefore, statusTimestampBefore);
+        if (queuedItemId != null)
+        {
+            filter = Builders<QueuedItem<TPayload>>.Filter.And(Builders<QueuedItem<TPayload>>.Filter.Eq("Id", queuedItemId.Value), filter);
+        }
         var newStatus = new QueuedItemStatus(statusAfterUpdate, DateTime.UtcNow);
         var update = Builders<QueuedItem<TPayload>>.Update.PushEach(status => status.Statuses, new [] { newStatus }, null, 0);
         return await this.Collection.FindOneAndUpdateAsync(filter, update);
@@ -70,7 +74,7 @@ public interface IQueuedItemRepository<TPayload>
 {
     Task<QueuedItem<TPayload>> InsertAsync(QueuedItem<TPayload> queuedItem);
     Task<QueuedItem<TPayload>> FindOneByStatusAndUpdateStatusAtomicallyAsync(
-        string statusBeforeUpdate, string statusAfterUpdate, DateTime nextReevaluationBefore, DateTime? statusTimestampBefore = null);
+        string statusBeforeUpdate, string statusAfterUpdate, DateTime nextReevaluationBefore, DateTime? statusTimestampBefore = null, TimestampId? queuedItemId = null);
     Task UpdateStatusAsync(
         TimestampId id, QueuedItemStatus statusAfterUpdate);
     IMongoCollection<QueuedItem<TPayload>> Collection { get; }

@@ -20,6 +20,11 @@ public class QueueOptions
     /// <summary>
     /// After what time should a payload which is in status "processing" considered as timed out and will be restarted. Default 30min.
     /// </summary>
-    public TimeSpan ProcessingTimeout { get; set; } = TimeSpan.FromMinutes(30);    
+    public TimeSpan ProcessingTimeout { get; set; } = TimeSpan.FromMinutes(30);
+    
+    /// <summary>
+    /// Wether to use polling or MongoDB change streams. Change streams are only supported in replica sets.
+    /// </summary>
+    public bool UseChangeStream { get; set; } = false;
 }
    

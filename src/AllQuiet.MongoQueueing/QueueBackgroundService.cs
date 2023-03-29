@@ -1,3 +1,4 @@
+using AllQuiet.MongoQueueing.MongoDB;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -9,8 +10,8 @@ public class QueueBackgroundService<TPayload> : BackgroundService
 {
     protected readonly IServiceProvider serviceProvider;
     protected readonly ILogger<QueueBackgroundService<TPayload>> logger;
-    private readonly IDequeueableQueue<TPayload> queue;
-    private readonly QueueOptions options;
+    protected readonly IDequeueableQueue<TPayload> queue;
+    protected readonly QueueOptions options;
 
     public QueueBackgroundService(IServiceProvider serviceProvider)
     {
@@ -22,9 +23,9 @@ public class QueueBackgroundService<TPayload> : BackgroundService
 
     protected async override Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        this.logger.LogInformation($"QueueBackgroundService for {typeof(TPayload).Name} starting at interval {this.options.PollInterval}...");
-        InitializeServices();
-        this.logger.LogInformation($"QueueBackgroundService for {typeof(TPayload).Name} started.");
+        this.logger.LogInformation($"{this.GetType().Name} for {typeof(TPayload).Name} starting at interval {this.options.PollInterval}...");
+        this.InitializeServices();
+        this.logger.LogInformation($"{this.GetType().Name} for {typeof(TPayload).Name} started.");
         await StartDequeueing(cancellationToken);
     }
 
@@ -33,7 +34,7 @@ public class QueueBackgroundService<TPayload> : BackgroundService
         using PeriodicTimer timer = new PeriodicTimer(options.PollInterval);
         while (!cancellationToken.IsCancellationRequested)
         {
-            var item = await this.DequeueAsync();
+            var item = await this.DequeueAsync(null);
 
             if (item == null)    
             {
@@ -42,7 +43,7 @@ public class QueueBackgroundService<TPayload> : BackgroundService
         }
     }
 
-    private void InitializeServices()
+    protected void InitializeServices()
     {
         this.logger.LogDebug($"InitializeServices for {typeof(TPayload).Name} started.");
         try
@@ -61,11 +62,11 @@ public class QueueBackgroundService<TPayload> : BackgroundService
         this.logger.LogDebug($"InitializeServices for {typeof(TPayload).Name} finished.");
     }
 
-    private async Task<QueuedItem<TPayload>?> DequeueAsync()
+    protected async Task<QueuedItem<TPayload>?> DequeueAsync(TimestampId? queuedItemId)
     {
         try 
         {
-            return await this.queue.DequeueAsync(async payload => {
+            return await this.queue.DequeueAsync(null, async payload => {
                 using (var scope = this.serviceProvider.CreateScope())
                 {
                     var queueProcessor = scope.ServiceProvider.GetRequiredService<IQueueProcessor<TPayload>>();
@@ -82,11 +83,11 @@ public class QueueBackgroundService<TPayload> : BackgroundService
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation($"QueueBackgroundService for {typeof(TPayload).Name} stopping ...");
+        logger.LogInformation($"{this.GetType().Name} for {typeof(TPayload).Name} stopping ...");
 
         await base.StopAsync(cancellationToken);
 
-        logger.LogInformation($"QueueBackgroundService for {typeof(TPayload).Name} stopped.");
+        logger.LogInformation($"{this.GetType().Name} for {typeof(TPayload).Name} stopped.");
     }
 
 }

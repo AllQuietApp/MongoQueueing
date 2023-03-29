@@ -1,6 +1,8 @@
 using AllQuiet.MongoQueueing.MongoDB;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace AllQuiet.MongoQueueing;
 
@@ -73,9 +75,9 @@ public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
 		return item.Statuses[0].Timestamp.AddSeconds(RetryIntervalsInSeconds[failedCount]);
 	}
 
-	public async Task<QueuedItem<TPayload>?> DequeueAsync(Func<TPayload, Task> processAsync)
+	public async Task<QueuedItem<TPayload>?> DequeueAsync(TimestampId? queuedItemId, Func<TPayload, Task> processAsync)
 	{
-		return await this.DequeueAsync(processAsync, async () => await this.queuedItemRepository.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusEnqueued, QueuedItemStatus.StatusProcessing, DateTime.UtcNow));
+		return await this.DequeueAsync(processAsync, async () => await this.queuedItemRepository.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusEnqueued, QueuedItemStatus.StatusProcessing, DateTime.UtcNow, null, queuedItemId));
 	}
 
     public async Task<QueuedItem<TPayload>?> DequeueFailedAsync(Func<TPayload, Task> processAsync)
@@ -87,13 +89,20 @@ public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
     {
 		return await this.queuedItemRepository.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusProcessing, QueuedItemStatus.StatusEnqueued, DateTime.UtcNow, System.DateTime.UtcNow.Add(this.queueOptions.ProcessingTimeout));
     }
+
+    public async Task<IChangeStreamCursor<ChangeStreamDocument<QueuedItem<TPayload>>>> CreateInsertedChangeStreamAsync(CancellationToken cancellationToken)
+    {
+		var pipeline = new EmptyPipelineDefinition<ChangeStreamDocument<AllQuiet.MongoQueueing.QueuedItem<TPayload>>>().Match(x => x.OperationType == ChangeStreamOperationType.Insert);
+		return await this.queuedItemRepository.Collection.WatchAsync(pipeline, null, cancellationToken);
+    }
 }
 
 public interface IDequeueableQueue<TPayload> : IQueue<TPayload>
 {
-	Task<QueuedItem<TPayload>?> DequeueAsync(Func<TPayload, Task> processAsync);
+	Task<QueuedItem<TPayload>?> DequeueAsync(TimestampId? queuedItemId, Func<TPayload, Task> processAsync);
     Task<QueuedItem<TPayload>?> DequeueFailedAsync(Func<TPayload, Task> processAsync);
     Task<QueuedItem<TPayload>?> EnqueueOrphanedProcessingAsync();
+    Task<IChangeStreamCursor<ChangeStreamDocument<QueuedItem<TPayload>>>> CreateInsertedChangeStreamAsync(CancellationToken cancellationToken);
 }
 
 public interface IQueue<TPayload>

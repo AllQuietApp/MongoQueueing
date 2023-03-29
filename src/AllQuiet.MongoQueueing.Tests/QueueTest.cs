@@ -43,7 +43,7 @@ public class QueueTest : MongoDBTest
         var queuedItem = await this.sut.EnqueueAsync(payload);
 
         // Act
-        await this.sut.DequeueAsync(payload => Task.CompletedTask);
+        await this.sut.DequeueAsync(null, payload => Task.CompletedTask);
 
         // Assert
         var queuedItemAfterDequeue = await this.collection.Find(Builders<QueuedItem<SomePayload>>.Filter.Eq(item => item.Id, queuedItem.Id)).FirstOrDefaultAsync();
@@ -62,7 +62,7 @@ public class QueueTest : MongoDBTest
         var queuedItem = await this.sut.EnqueueAsync(payload);
 
         // Act & Assert
-        await this.sut.DequeueAsync(payload => {
+        await this.sut.DequeueAsync(null, payload => {
             throw new Exception("Something went terribly wrong.");
         });
 

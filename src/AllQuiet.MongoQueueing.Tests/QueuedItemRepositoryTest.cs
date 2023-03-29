@@ -50,6 +50,51 @@ public class QueuedItemRepositoryTest : MongoDBTest
     }
 
     [Fact]
+    public async Task FindOneByStatusAndUpdateStatusAtomicallyAsync_WithSpecificId()
+    {
+        // Arrange
+        var now = DateTime.UtcNow;
+        var queuedItem1 = await this.sut.InsertAsync(new QueuedItem<SomePayload>(
+            new TimestampId(),
+            new [] { QueuedItemStatus.Enqueued() },
+            new SomePayload()
+        ));
+
+        var queuedItem2 = await this.sut.InsertAsync(new QueuedItem<SomePayload>(
+            new TimestampId(),
+            new [] { QueuedItemStatus.Enqueued() },
+            new SomePayload()
+        ));
+
+        // Act & Assert
+        var itemEnqueued = await this.sut.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusEnqueued, QueuedItemStatus.StatusProcessing, now, null, queuedItem2.Id);
+
+        Assert.NotNull(itemEnqueued);
+        Assert.NotNull(itemEnqueued.Statuses);
+        Assert.Equal(QueuedItemStatus.StatusEnqueued, itemEnqueued.Statuses[0].Status);
+
+        var itemProcessing = await this.collection.Find(Builders<QueuedItem<SomePayload>>.Filter.Eq(item => item.Id, queuedItem2.Id)).FirstOrDefaultAsync();
+        var itemNotProcessing = await this.collection.Find(Builders<QueuedItem<SomePayload>>.Filter.Eq(item => item.Id, queuedItem1.Id)).FirstOrDefaultAsync();
+
+        Assert.NotNull(itemProcessing);
+        Assert.NotNull(itemProcessing.Statuses);
+        Assert.Equal(QueuedItemStatus.StatusProcessing, itemProcessing.Statuses[0].Status);
+
+        
+        Assert.NotNull(itemNotProcessing);
+        Assert.NotNull(itemNotProcessing.Statuses);
+        Assert.Equal(QueuedItemStatus.StatusEnqueued, itemNotProcessing.Statuses[0].Status);
+
+
+        await this.sut.UpdateStatusAsync(queuedItem2.Id, QueuedItemStatus.Processed);
+        var itemProcessed = await this.collection.Find(Builders<QueuedItem<SomePayload>>.Filter.Eq(item => item.Id, queuedItem2.Id)).FirstOrDefaultAsync();
+
+        Assert.NotNull(itemProcessed);
+        Assert.NotNull(itemProcessed.Statuses);
+        Assert.Equal(QueuedItemStatus.StatusProcessed, itemProcessed.Statuses[0].Status);
+    }
+
+    [Fact]
     public async Task FindOneByStatusAndUpdateStatusAtomicallyWithNextReevaluationAsync()
     {
         // Arrange

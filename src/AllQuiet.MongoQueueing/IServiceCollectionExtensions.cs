@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AllQuiet.MongoQueueing;
 
@@ -33,7 +34,14 @@ public static class IServiceCollectionExtensions
         services.AddSingleton<Queue<TPayload>>();
         services.AddSingleton<IQueue<TPayload>>(serviceProvider => serviceProvider.GetRequiredService<Queue<TPayload>>());
         services.AddSingleton<IDequeueableQueue<TPayload>>(serviceProvider => serviceProvider.GetRequiredService<Queue<TPayload>>());
-        services.AddHostedService<QueueBackgroundService<TPayload>>();
+        services.AddHostedService<QueueBackgroundService<TPayload>>(serviceProvider => {
+            var options = serviceProvider.GetRequiredService<IOptions<QueueOptions>>();
+            if (options.Value.UseChangeStream)
+            {
+                return new QueueChangeStreamBackgroundService<TPayload>(serviceProvider);
+            }
+            return new QueueBackgroundService<TPayload>(serviceProvider);
+        });
         services.AddHostedService<FailedQueueBackgroundService<TPayload>>();
         services.AddHostedService<OrphanedProcessingQueueBackgroundService<TPayload>>();
     }
