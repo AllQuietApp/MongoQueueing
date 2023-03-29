@@ -23,7 +23,7 @@ public class QueuedItemRepository<TPayload> : MongoRepository<QueuedItem<TPayloa
         var filter = GetFilterFindOneByStatusAndUpdateStatusAtomicallyAsync(statusBeforeUpdate, nextReevaluationBefore, statusTimestampBefore);
         if (queuedItemId != null)
         {
-            filter = Builders<QueuedItem<TPayload>>.Filter.And(Builders<QueuedItem<TPayload>>.Filter.Eq("Id", queuedItemId.Value), filter);
+            filter = Builders<QueuedItem<TPayload>>.Filter.And(Builders<QueuedItem<TPayload>>.Filter.Eq(item => item.Id, queuedItemId.Value), filter);
         }
         var newStatus = new QueuedItemStatus(statusAfterUpdate, DateTime.UtcNow);
         var update = Builders<QueuedItem<TPayload>>.Update.PushEach(status => status.Statuses, new [] { newStatus }, null, 0);

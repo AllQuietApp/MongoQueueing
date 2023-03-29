@@ -53,6 +53,18 @@ var mongoClient = new MongoClient("mongodb://localhost:27017");
 builder.Services.AddSingleton<IMongoQueueingDatabaseContext>(new MongoQueueingDatabaseContext(mongoClient.GetDatabase("MyDatabaseName")));
 ```
 
+**Running in Replica set mode? Enable change streams!**
+Listening to changes of the MongoDB change stream is more resourceful than polling your MongoDB. This feature though is only available when running in replica set mode. 
+Make sure to enable it in your appsettings, it's disabled by default.
+`appsettings.json`
+```json
+{
+  "QueueOptions": {
+    "UseChangeStream": true
+  }
+}
+```
+
 ### Add Generic Queueing
 Generic queueing will add one queue which contains different types of payloads. 
 Since the queue is processed FIFO you cannot control prioritized dequeueing per payload type. If you need dedicated queues per payload type, add a dedicated queue.
