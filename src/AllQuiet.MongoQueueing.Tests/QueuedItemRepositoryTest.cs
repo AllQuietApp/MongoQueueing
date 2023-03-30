@@ -137,6 +137,34 @@ public class QueuedItemRepositoryTest : MongoDBTest
         Assert.Equal(QueuedItemStatus.StatusEnqueued, itemEnqueued.Statuses[0].Status);
     }
 
+    [Fact]
+    public async Task FindOneByStatusAndUpdateStatusAtomicallyAsync_With100ParallelUpdates()
+    {
+        // Arrange
+        var now = DateTime.UtcNow;
+        var queuedItem = await this.sut.InsertAsync(new QueuedItem<SomePayload>(
+            new TimestampId(),
+            new [] { QueuedItemStatus.Enqueued() },
+            new SomePayload()
+        ));
+
+        // Act
+
+        var updateTasks = new List<Task<QueuedItem<SomePayload>>>();
+        for (int i = 0; i<100; i++)
+        {
+            var task = this.sut.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusEnqueued, QueuedItemStatus.StatusProcessing, DateTime.UtcNow, null, queuedItem.Id);
+            updateTasks.Add(task);
+        }
+        await Task.WhenAll(updateTasks);
+        
+        // Assert
+        var result = updateTasks.Select(t => t.Result).Single(t => t != null);
+        Assert.NotNull(result);
+        Assert.Single(result.Statuses);
+    }
+
+
     public class SomePayload
     {
     }

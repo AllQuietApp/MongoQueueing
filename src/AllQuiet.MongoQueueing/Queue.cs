@@ -23,6 +23,11 @@ public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
 
     public Queue(ILogger<Queue<TPayload>> logger, IQueuedItemRepository<TPayload> queuedItemRepository, IOptions<QueueOptions> queueOptions)
 	{
+		if (queueOptions.Value.ProcessingTimeout <= TimeSpan.Zero)
+		{
+			throw new ArgumentOutOfRangeException(nameof(queueOptions.Value.ProcessingTimeout));
+		}
+
 		this.logger = logger;
 		this.queuedItemRepository = queuedItemRepository;
 		this.queueOptions = queueOptions.Value;
@@ -77,7 +82,11 @@ public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
 
 	public async Task<QueuedItem<TPayload>?> DequeueAsync(TimestampId? queuedItemId, Func<TPayload, Task> processAsync)
 	{
-		return await this.DequeueAsync(processAsync, async () => await this.queuedItemRepository.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusEnqueued, QueuedItemStatus.StatusProcessing, DateTime.UtcNow, null, queuedItemId));
+		return await this.DequeueAsync(
+			processAsync, 
+			
+			async () => await this.queuedItemRepository.FindOneByStatusAndUpdateStatusAtomicallyAsync(
+			QueuedItemStatus.StatusEnqueued, QueuedItemStatus.StatusProcessing, DateTime.UtcNow, null, queuedItemId));
 	}
 
     public async Task<QueuedItem<TPayload>?> DequeueFailedAsync(Func<TPayload, Task> processAsync)
@@ -87,7 +96,11 @@ public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
 
     public async Task<QueuedItem<TPayload>?> EnqueueOrphanedProcessingAsync()
     {
-		return await this.queuedItemRepository.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusProcessing, QueuedItemStatus.StatusEnqueued, DateTime.UtcNow, System.DateTime.UtcNow.Add(this.queueOptions.ProcessingTimeout));
+		return await this.queuedItemRepository.FindOneByStatusAndUpdateStatusAtomicallyAsync(
+			QueuedItemStatus.StatusProcessing, 
+			QueuedItemStatus.StatusEnqueued, 
+			DateTime.UtcNow, 
+			System.DateTime.UtcNow.Add(-this.queueOptions.ProcessingTimeout));
     }
 
     public async Task<IChangeStreamCursor<ChangeStreamDocument<QueuedItem<TPayload>>>> CreateInsertedChangeStreamAsync(CancellationToken cancellationToken)

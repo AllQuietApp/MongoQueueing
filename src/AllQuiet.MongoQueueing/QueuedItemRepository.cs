@@ -27,7 +27,7 @@ public class QueuedItemRepository<TPayload> : MongoRepository<QueuedItem<TPayloa
         }
         var newStatus = new QueuedItemStatus(statusAfterUpdate, DateTime.UtcNow);
         var update = Builders<QueuedItem<TPayload>>.Update.PushEach(status => status.Statuses, new [] { newStatus }, null, 0);
-        return await this.Collection.FindOneAndUpdateAsync(filter, update);
+        return await this.Collection.FindOneAndUpdateAsync(filter, update, new FindOneAndUpdateOptions<QueuedItem<TPayload>>());
     }
 
     private FilterDefinition<QueuedItem<TPayload>> GetFilterFindOneByStatusAndUpdateStatusAtomicallyAsync(string statusBeforeUpdate, DateTime nextReevaluationBefore, DateTime? statusTimestampBefore)
@@ -62,6 +62,7 @@ public class QueuedItemRepository<TPayload> : MongoRepository<QueuedItem<TPayloa
     {
         return new [] 
         {
+            //new CreateIndexModel<QueuedItem<TPayload>>(Builders<QueuedItem<TPayload>>.IndexKeys.Ascending(x => x.Id).Ascending(x => x.Statuses[0].Status).Ascending(x => x.Statuses[0].NextReevaluation)),
             new CreateIndexModel<QueuedItem<TPayload>>(Builders<QueuedItem<TPayload>>.IndexKeys.Ascending(x => x.Statuses[0].Status).Ascending(x => x.Statuses[0].NextReevaluation)),
             new CreateIndexModel<QueuedItem<TPayload>>(Builders<QueuedItem<TPayload>>.IndexKeys.Ascending(x => x.Statuses[0].NextReevaluation))
         };

@@ -20,24 +20,31 @@ public class OrphanedProcessingQueueBackgroundService<TPayload> : BackgroundServ
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         this.logger.LogInformation($"OrphanedProcessingQueueBackgroundService for {typeof(TPayload).Name} started.");
-                
-        using PeriodicTimer timer = new PeriodicTimer(options.OrphanedPollInterval);
-        while (
-            !cancellationToken.IsCancellationRequested &&
-            await timer.WaitForNextTickAsync(cancellationToken))
-        {
-            try 
-            {
 
-                await this.queue.EnqueueOrphanedProcessingAsync();
-            } 
-            catch (Exception ex)
+        using PeriodicTimer timer = new PeriodicTimer(options.OrphanedPollInterval);
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var orphanedItem = await this.DequeueOrphanedItemAsync();
+            if (orphanedItem == null)
             {
-                logger.LogError(ex, $"EnqueueOrphanedProcessingAsync failed for {typeof(TPayload).Name}");
+                await timer.WaitForNextTickAsync(cancellationToken);
             }
         }
     }
 
+    private async Task<QueuedItem<TPayload>?> DequeueOrphanedItemAsync()
+    {               
+        try 
+        {
+            this.logger.LogInformation($"DequeueOrphanedItemAsync for {typeof(TPayload).Name} executing.");
+            return await this.queue.EnqueueOrphanedProcessingAsync();
+        } 
+        catch (Exception ex)
+        {
+            logger.LogError(ex, $"DequeueOrphanedItemAsync failed for {typeof(TPayload).Name}");
+        }
+        return null;
+    }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {

@@ -1,7 +1,10 @@
+using Microsoft.Extensions.Options;
+
 namespace AllQuiet.MongoQueueing;
 
 public class QueueOptions
 {
+
     /// <summary>
     ///  How often to poll for new payloads in the queue. Default 100ms.
     /// </summary>
@@ -27,4 +30,3 @@ public class QueueOptions
     /// </summary>
     public bool UseChangeStream { get; set; } = false;
 }
-   

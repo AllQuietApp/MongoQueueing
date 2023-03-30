@@ -66,7 +66,7 @@ public class QueueBackgroundService<TPayload> : BackgroundService
     {
         try 
         {
-            return await this.queue.DequeueAsync(null, async payload => {
+            return await this.queue.DequeueAsync(queuedItemId, async payload => {
                 using (var scope = this.serviceProvider.CreateScope())
                 {
                     var queueProcessor = scope.ServiceProvider.GetRequiredService<IQueueProcessor<TPayload>>();
