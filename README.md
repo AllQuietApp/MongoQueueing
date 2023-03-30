@@ -56,6 +56,7 @@ builder.Services.AddSingleton<IMongoQueueingDatabaseContext>(new MongoQueueingDa
 **Running in Replica set mode? Enable change streams!**
 Listening to changes of the MongoDB change stream is more resourceful than polling your MongoDB. This feature though is only available when running in replica set mode. 
 Make sure to enable it in your appsettings, it's disabled by default.
+
 `appsettings.json`
 ```json
 {
