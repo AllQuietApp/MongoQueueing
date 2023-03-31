@@ -19,7 +19,7 @@ public class GenericQueueingTest : MongoDBTest
 
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddSingleton<IOptions<QueueOptions>>(new OptionsWrapper<QueueOptions>(new QueueOptions()));
-        serviceCollection.AddSingleton<ILogger<Queue<GenericQueueEvent>>>(A.Fake<ILogger<Queue<AllQuiet.MongoQueueing.GenericQueueEvent>>>());
+        serviceCollection.AddSingleton<ILogger<Queue<GenericQueueEvent>>>(A.Fake<ILogger<Queue<GenericQueueEvent>>>());
         serviceCollection.AddSingleton<ILogger<QueuedItemRepository<GenericQueueEvent>>>(A.Fake<ILogger<QueuedItemRepository<GenericQueueEvent>>>());
         serviceCollection.AddSingleton<IMongoDatabase>(this.MongoDatabase);
         serviceCollection.AddGenericQueueing();
