@@ -26,10 +26,10 @@ public class QueueBackgroundService<TPayload> : BackgroundService
         this.logger.LogInformation($"{this.GetType().Name} for {typeof(TPayload).Name} starting at interval {this.options.PollInterval}...");
         this.InitializeServices();
         this.logger.LogInformation($"{this.GetType().Name} for {typeof(TPayload).Name} started.");
-        await StartDequeueing(cancellationToken);
+        await StartPolling(cancellationToken);
     }
 
-    private async Task StartDequeueing(CancellationToken cancellationToken)
+    protected async Task StartPolling(CancellationToken cancellationToken)
     {
         using PeriodicTimer timer = new PeriodicTimer(options.PollInterval);
         while (!cancellationToken.IsCancellationRequested)

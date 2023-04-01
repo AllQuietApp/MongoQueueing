@@ -17,8 +17,8 @@ public class QueueChangeStreamBackgroundService<TPayload> : QueueBackgroundServi
         this.logger.LogInformation($"QueueChangeStreamBackgroundService for {typeof(TPayload).Name} started.");
         
         var watchChangeStreamTask = WatchChangeStream(cancellationToken);
-        var dequeueingTask = DequeueCurrentlyEnqueued(cancellationToken);
-        await Task.WhenAll(watchChangeStreamTask, dequeueingTask);
+        var startPollingTask = StartPolling(cancellationToken);
+        await Task.WhenAll(watchChangeStreamTask, startPollingTask);
     }
 
     private async Task WatchChangeStream(CancellationToken cancellationToken)
@@ -44,16 +44,5 @@ public class QueueChangeStreamBackgroundService<TPayload> : QueueBackgroundServi
                 await Task.Delay(100);
             }
         }
-    }
-
-    private async Task DequeueCurrentlyEnqueued(CancellationToken cancellationToken)
-    {
-
-        QueuedItem<TPayload>? queuedItem;
-        do
-        {
-            queuedItem = await this.DequeueAsync(null);
-        }
-        while (!cancellationToken.IsCancellationRequested && queuedItem != null);
     }
 }
