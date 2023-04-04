@@ -20,26 +20,25 @@ public class QueuedItemRepository<TPayload> : MongoRepository<QueuedItem<TPayloa
     public async Task<QueuedItem<TPayload>> FindOneByStatusAndUpdateStatusAtomicallyAsync(
         string statusBeforeUpdate, string statusAfterUpdate, DateTime nextReevaluationBefore, DateTime? statusTimestampBefore = null, TimestampId? queuedItemId = null)
     {
-        var filter = GetFilterFindOneByStatusAndUpdateStatusAtomicallyAsync(statusBeforeUpdate, nextReevaluationBefore, statusTimestampBefore);
-        if (queuedItemId != null)
-        {
-            filter = Builders<QueuedItem<TPayload>>.Filter.And(Builders<QueuedItem<TPayload>>.Filter.Eq(item => item.Id, queuedItemId.Value), filter);
-        }
         var newStatus = new QueuedItemStatus(statusAfterUpdate, DateTime.UtcNow);
         var update = Builders<QueuedItem<TPayload>>.Update.PushEach(status => status.Statuses, new [] { newStatus }, null, 0);
-        return await this.Collection.FindOneAndUpdateAsync(filter, update, new FindOneAndUpdateOptions<QueuedItem<TPayload>>());
-    }
 
-    private FilterDefinition<QueuedItem<TPayload>> GetFilterFindOneByStatusAndUpdateStatusAtomicallyAsync(string statusBeforeUpdate, DateTime nextReevaluationBefore, DateTime? statusTimestampBefore)
-    {
         if (statusTimestampBefore != null)
         {
-            return Builders<QueuedItem<TPayload>>.Filter.And(
-                Builders<QueuedItem<TPayload>>.Filter.Eq("Statuses.0.Status", statusBeforeUpdate),
-                Builders<QueuedItem<TPayload>>.Filter.Lte("Statuses.0.Timestamp", statusTimestampBefore));
+            return await this.UpdateStatusAtomicallyByStatusAndStatusTimestampBeforeAsync(newStatus, update, statusBeforeUpdate, statusTimestampBefore);
         }
 
-        return Builders<QueuedItem<TPayload>>.Filter.Or(
+        if (queuedItemId != null)
+        {
+            return await this.UpdateStatusAtomicallyByStatusAndQueuedItemIdAsync(newStatus, update, statusBeforeUpdate, nextReevaluationBefore, queuedItemId.Value);
+        }
+
+        return await this.UpdateStatusAtomicallyByStatusAsync(newStatus, update, statusBeforeUpdate, nextReevaluationBefore);
+    }
+
+    private async Task<QueuedItem<TPayload>> UpdateStatusAtomicallyByStatusAsync(QueuedItemStatus newStatus, UpdateDefinition<QueuedItem<TPayload>> update, string statusBeforeUpdate, DateTime nextReevaluationBefore)
+    {
+        var filter = Builders<QueuedItem<TPayload>>.Filter.Or(
             Builders<QueuedItem<TPayload>>.Filter.And(
                 Builders<QueuedItem<TPayload>>.Filter.Eq("Statuses.0.Status", statusBeforeUpdate),
                 Builders<QueuedItem<TPayload>>.Filter.Lte("Statuses.0.NextReevaluation", nextReevaluationBefore)),
@@ -47,6 +46,51 @@ public class QueuedItemRepository<TPayload> : MongoRepository<QueuedItem<TPayloa
                 Builders<QueuedItem<TPayload>>.Filter.Eq("Statuses.0.Status", statusBeforeUpdate),
                 Builders<QueuedItem<TPayload>>.Filter.Eq("Statuses.0.NextReevaluation", BsonNull.Value))
         );
+
+        var hint = new BsonDocument(new Dictionary<string, object>
+        {
+            { "Statuses.0.Status",  1 },
+            { "Statuses.0.NextReevaluation",  1 }
+        });
+        
+        return await this.Collection.FindOneAndUpdateAsync(filter, update, new FindOneAndUpdateOptions<QueuedItem<TPayload>> { Hint = hint });    
+    }
+
+    private async Task<QueuedItem<TPayload>> UpdateStatusAtomicallyByStatusAndQueuedItemIdAsync(QueuedItemStatus newStatus, UpdateDefinition<QueuedItem<TPayload>> update, string statusBeforeUpdate, DateTime nextReevaluationBefore, TimestampId queuedItemId)
+    {
+        var filter = Builders<QueuedItem<TPayload>>.Filter.Or(
+                Builders<QueuedItem<TPayload>>.Filter.And(
+                    Builders<QueuedItem<TPayload>>.Filter.Eq("_id", queuedItemId),
+                    Builders<QueuedItem<TPayload>>.Filter.Eq("Statuses.0.Status", statusBeforeUpdate),
+                    Builders<QueuedItem<TPayload>>.Filter.Lte("Statuses.0.NextReevaluation", nextReevaluationBefore)),
+                Builders<QueuedItem<TPayload>>.Filter.And(
+                    Builders<QueuedItem<TPayload>>.Filter.Eq("_id", queuedItemId),
+                    Builders<QueuedItem<TPayload>>.Filter.Eq("Statuses.0.Status", statusBeforeUpdate),
+                    Builders<QueuedItem<TPayload>>.Filter.Eq("Statuses.0.NextReevaluation", BsonNull.Value)));
+                    
+        var hint = new BsonDocument(new Dictionary<string, object>
+        {
+            { "_id", 1 },
+            { "Statuses.0.Status",  1 },
+            { "Statuses.0.NextReevaluation",  1 }
+        });
+        
+        return await this.Collection.FindOneAndUpdateAsync(filter, update, new FindOneAndUpdateOptions<QueuedItem<TPayload>> { Hint = hint });    
+    }
+
+    private async Task<QueuedItem<TPayload>> UpdateStatusAtomicallyByStatusAndStatusTimestampBeforeAsync(QueuedItemStatus newStatus, UpdateDefinition<QueuedItem<TPayload>> update, string statusBeforeUpdate, DateTime? statusTimestampBefore)
+    {
+        var filter = Builders<QueuedItem<TPayload>>.Filter.And(
+                Builders<QueuedItem<TPayload>>.Filter.Eq("Statuses.0.Status", statusBeforeUpdate),
+                Builders<QueuedItem<TPayload>>.Filter.Lte("Statuses.0.Timestamp", statusTimestampBefore));
+
+        var hint = new BsonDocument(new Dictionary<string, object>
+        {
+            { "Statuses.0.Status",  1 },
+            { "Statuses.0.Timestamp",  1 }
+        });
+        
+        return await this.Collection.FindOneAndUpdateAsync(filter, update, new FindOneAndUpdateOptions<QueuedItem<TPayload>> { Hint = hint });              
     }
 
     public async Task UpdateStatusAsync(
@@ -62,9 +106,9 @@ public class QueuedItemRepository<TPayload> : MongoRepository<QueuedItem<TPayloa
     {
         return new [] 
         {
-            //new CreateIndexModel<QueuedItem<TPayload>>(Builders<QueuedItem<TPayload>>.IndexKeys.Ascending(x => x.Id).Ascending(x => x.Statuses[0].Status).Ascending(x => x.Statuses[0].NextReevaluation)),
+            new CreateIndexModel<QueuedItem<TPayload>>(Builders<QueuedItem<TPayload>>.IndexKeys.Ascending(x => x.Id).Ascending(x => x.Statuses[0].Status).Ascending(x => x.Statuses[0].NextReevaluation)),
             new CreateIndexModel<QueuedItem<TPayload>>(Builders<QueuedItem<TPayload>>.IndexKeys.Ascending(x => x.Statuses[0].Status).Ascending(x => x.Statuses[0].NextReevaluation)),
-            new CreateIndexModel<QueuedItem<TPayload>>(Builders<QueuedItem<TPayload>>.IndexKeys.Ascending(x => x.Statuses[0].NextReevaluation))
+            new CreateIndexModel<QueuedItem<TPayload>>(Builders<QueuedItem<TPayload>>.IndexKeys.Ascending(x => x.Statuses[0].Status).Ascending(x => x.Statuses[0].Timestamp))
         };
     }
 

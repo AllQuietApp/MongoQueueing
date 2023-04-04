@@ -1,7 +1,7 @@
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
 
-namespace AllQuiet.MongoQueueing.Tests.Queuing;
+namespace AllQuiet.MongoQueueing.Tests;
 
 public class GenericQueueProcessorTest
 {

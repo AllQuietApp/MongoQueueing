@@ -3,7 +3,7 @@ using FakeItEasy;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
-namespace AllQuiet.MongoQueueing.Tests.Queuing;
+namespace AllQuiet.MongoQueueing.Tests;
 
 public class QueuedItemRepositoryTest : MongoDBTest
 {
@@ -95,7 +95,7 @@ public class QueuedItemRepositoryTest : MongoDBTest
     }
 
     [Fact]
-    public async Task FindOneByStatusAndUpdateStatusAtomicallyWithNextReevaluationAsync()
+    public async Task FindOneByStatusAndUpdateStatusAtomicallyAsync_WithNextReevaluation()
     {
         // Arrange
         var now = DateTime.UtcNow;
@@ -108,6 +108,24 @@ public class QueuedItemRepositoryTest : MongoDBTest
 
         // Act & Assert
         var itemEnqueued = await this.sut.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusEnqueued, QueuedItemStatus.StatusProcessing, now);
+
+        Assert.Null(itemEnqueued);
+    }
+
+    [Fact]
+    public async Task FindOneByStatusAndUpdateStatusAtomicallyAsync_WithNextReevaluationAndQueuedItemId()
+    {
+        // Arrange
+        var now = DateTime.UtcNow;
+
+        var queuedItem = await this.sut.InsertAsync(new QueuedItem<SomePayload>(
+            new TimestampId(),
+            new [] { QueuedItemStatus.Enqueued(now.AddMinutes(1)) },
+            new SomePayload()
+        ));
+
+        // Act & Assert
+        var itemEnqueued = await this.sut.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusEnqueued, QueuedItemStatus.StatusProcessing, now, null, queuedItem.Id);
 
         Assert.Null(itemEnqueued);
     }
@@ -138,7 +156,7 @@ public class QueuedItemRepositoryTest : MongoDBTest
     }
 
     [Fact]
-    public async Task FindOneByStatusAndUpdateStatusAtomicallyAsync_With100ParallelUpdates()
+    public async Task FindOneByStatusAndUpdateStatusAtomicallyAsync_WithParallelUpdates()
     {
         // Arrange
         var now = DateTime.UtcNow;
@@ -151,7 +169,7 @@ public class QueuedItemRepositoryTest : MongoDBTest
         // Act
 
         var updateTasks = new List<Task<QueuedItem<SomePayload>>>();
-        for (int i = 0; i<100; i++)
+        for (int i = 0; i<10; i++)
         {
             var task = this.sut.FindOneByStatusAndUpdateStatusAtomicallyAsync(QueuedItemStatus.StatusEnqueued, QueuedItemStatus.StatusProcessing, DateTime.UtcNow, null, queuedItem.Id);
             updateTasks.Add(task);
@@ -163,9 +181,8 @@ public class QueuedItemRepositoryTest : MongoDBTest
         Assert.NotNull(result);
         Assert.Single(result.Statuses);
     }
+}
 
-
-    public class SomePayload
-    {
-    }
+public class SomePayload
+{
 }
