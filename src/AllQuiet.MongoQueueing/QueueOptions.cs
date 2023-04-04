@@ -1,24 +1,22 @@
-using Microsoft.Extensions.Options;
-
 namespace AllQuiet.MongoQueueing;
 
 public class QueueOptions
 {
 
     /// <summary>
-    ///  How often to poll for new payloads in the queue. Default 100ms.
+    ///  How often to poll for new payloads in the queue. Default 1s.
     /// </summary>
-    public TimeSpan PollInterval { get; set; } = TimeSpan.FromMilliseconds(100);
+    public TimeSpan PollInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    ///  How often to poll for failed payloads in the queue. Default 1s.
+    ///  How often to poll for failed payloads in the queue. Default 10s.
     /// </summary>
-    public TimeSpan FailedPollInterval { get; set; } = TimeSpan.FromMilliseconds(1000);
+    public TimeSpan FailedPollInterval { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// How often to poll timed out payloads in the queue. Default 10s.
+    /// How often to poll timed out payloads in the queue. Default 1min.
     /// </summary>
-    public TimeSpan OrphanedPollInterval { get; set; } = TimeSpan.FromSeconds(10);
+    public TimeSpan OrphanedPollInterval { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
     /// After what time should a payload which is in status "processing" considered as timed out and will be restarted. Default 30min.
