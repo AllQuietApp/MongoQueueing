@@ -70,11 +70,11 @@ public class FailedQueueBackgroundService<TPayload> : BackgroundService
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation($"FailedQueueBackgroundService for {typeof(TPayload).Name} stopping ...");
+        logger.LogDebug($"FailedQueueBackgroundService for {typeof(TPayload).Name} stopping ...");
 
         await base.StopAsync(cancellationToken);
 
-        logger.LogInformation($"FailedQueueBackgroundService for {typeof(TPayload).Name} stopped.");
+        logger.LogDebug($"FailedQueueBackgroundService for {typeof(TPayload).Name} stopped.");
     }
 
 }

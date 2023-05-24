@@ -19,7 +19,7 @@ public class OrphanedProcessingQueueBackgroundService<TPayload> : BackgroundServ
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        this.logger.LogInformation($"OrphanedProcessingQueueBackgroundService for {typeof(TPayload).Name} started.");
+        this.logger.LogDebug($"OrphanedProcessingQueueBackgroundService for {typeof(TPayload).Name} started.");
 
         using PeriodicTimer timer = new PeriodicTimer(options.OrphanedPollInterval);
         while (!cancellationToken.IsCancellationRequested)
@@ -36,7 +36,7 @@ public class OrphanedProcessingQueueBackgroundService<TPayload> : BackgroundServ
     {               
         try 
         {
-            this.logger.LogInformation($"DequeueOrphanedItemAsync for {typeof(TPayload).Name} executing.");
+            this.logger.LogDebug($"DequeueOrphanedItemAsync for {typeof(TPayload).Name} executing.");
             return await this.queue.EnqueueOrphanedProcessingAsync();
         } 
         catch (Exception ex)
@@ -48,11 +48,11 @@ public class OrphanedProcessingQueueBackgroundService<TPayload> : BackgroundServ
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation($"OrphanedProcessingQueueBackgroundService for {typeof(TPayload).Name} stopping ...");
+        logger.LogDebug($"OrphanedProcessingQueueBackgroundService for {typeof(TPayload).Name} stopping ...");
 
         await base.StopAsync(cancellationToken);
 
-        logger.LogInformation($"OrphanedProcessingQueueBackgroundService for {typeof(TPayload).Name} stopped.");
+        logger.LogDebug($"OrphanedProcessingQueueBackgroundService for {typeof(TPayload).Name} stopped.");
     }
 
 }
