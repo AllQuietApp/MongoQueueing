@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
@@ -99,8 +100,10 @@ public abstract class MongoRepository<T>
                 await this.Collection.InsertOneAsync(entity);
                 return entity;
             }
-            catch(MongoDuplicateKeyException)
+            catch(MongoException ex)
             {
+                if (ex.IsDuplicateKeyException() == false)
+                    throw;
             }
         }
         throw new Exception($"Unable to find unique TimestampId for {timestampId.Value}");
