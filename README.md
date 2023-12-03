@@ -64,27 +64,44 @@ In your `appsettings.json`, you can configure the following options of `MongoQue
 ```json
 {
   "QueueOptions": {
-    // TimeSpan specifying how often to poll for new payloads. Default is 1 second.
     "PollInterval": "00:00:01",
-
-    // TimeSpan specifying the frequency for polling failed payloads. Default is 10 seconds.
     "FailedPollInterval": "00:00:10",
-
-    // TimeSpan defining how often to check for timed-out payloads. Default is 1 minute.
     "OrphanedPollInterval": "00:01:00",
-
-    // TimeSpan after which a payload in 'processing' state is considered timed out. Default is 30 minutes.
     "ProcessingTimeout": "00:30:00",
-
-    // Boolean to determine whether to use MongoDB change streams instead of polling. Default is false.
     "UseChangeStream": false,
-
-    // Array of integers specifying the seconds between each retry for a failed payload. 
-    // Length of the array also indicates the number of retry attempts.
     "RetryIntervalsInSeconds": [1, 2, 10, 30, 60, 3600]
   }
 }
 ```
+- `PollInterval`
+  - Sets the frequency for polling new payloads in the queue.
+  - Default: `"00:00:01"` (1 second)
+  - Format: TimeSpan (hh:mm:ss)
+
+- `FailedPollInterval`
+  - Determines the interval for checking failed payloads in the queue.
+  - Default: `"00:00:10"` (10 seconds)
+  - Format: TimeSpan (hh:mm:ss)
+
+- `OrphanedPollInterval`
+  - Configures the interval for polling timed-out payloads in the queue.
+  - Default: `"00:01:00"` (1 minute)
+  - Format: TimeSpan (hh:mm:ss)
+
+- `ProcessingTimeout`
+  - Specifies the timeout for payloads in a 'processing' state before they are considered as timed out.
+  - Default: `"00:30:00"` (30 minutes)
+  - Format: TimeSpan (hh:mm:ss)
+
+- `UseChangeStream`
+  - Indicates whether to use polling or MongoDB change streams for queue updates.
+  - Default: `false`
+  - Format: Boolean
+
+- `RetryIntervalsInSeconds`
+  - Specifies the intervals in seconds for retrying failed payload processing.
+  - Default: `[1, 2, 10, 30, 60, 3600]`
+  - Format: Array of integers
 
 ### Add Generic Queueing
 Generic queueing will add one queue which contains different types of payloads. 
