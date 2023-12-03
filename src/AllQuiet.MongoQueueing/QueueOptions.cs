@@ -64,4 +64,13 @@ public class QueueOptions
 		60,
 		3600,
 	};
+
+    /// <summary>
+    /// Indicates whether exceptions should be persisted for analysis.
+    /// </summary>
+    /// <remarks>
+    /// When set to true, exceptions that occur during queue processing will be stored for further investigation.
+    /// Default value is false, meaning exceptions are not persisted by default.
+    /// </remarks>
+    public bool PersistException { get; set; } = false;
 }

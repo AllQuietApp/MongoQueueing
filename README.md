@@ -69,7 +69,8 @@ In your `appsettings.json`, you can configure the following options of `MongoQue
     "OrphanedPollInterval": "00:01:00",
     "ProcessingTimeout": "00:30:00",
     "UseChangeStream": false,
-    "RetryIntervalsInSeconds": [1, 2, 10, 30, 60, 3600]
+    "RetryIntervalsInSeconds": [1, 2, 10, 30, 60, 3600],
+    "PersistException": false
   }
 }
 ```
@@ -102,6 +103,12 @@ In your `appsettings.json`, you can configure the following options of `MongoQue
   - Specifies the intervals in seconds for retrying failed payload processing.
   - Default: `[1, 2, 10, 30, 60, 3600]`
   - Format: Array of integers
+
+- `PersistException`
+  - Boolean indicating whether exceptions should be persisted for analysis. 
+  - Default: `false`
+  - Format: Boolean
+
 
 ### Add Generic Queueing
 Generic queueing will add one queue which contains different types of payloads. 

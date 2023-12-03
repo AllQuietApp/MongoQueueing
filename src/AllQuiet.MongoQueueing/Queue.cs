@@ -53,7 +53,7 @@ public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
 				var nextReevaluation = CalculateNextReevalation(item);
 
 				await this.queuedItemRepository.UpdateStatusAsync(item.Id, 
-					nextReevaluation != null ? QueuedItemStatus.Failed(nextReevaluation.Value) : QueuedItemStatus.FinallyFailed);
+					nextReevaluation != null ? QueuedItemStatus.Failed(nextReevaluation.Value, queueOptions.PersistException ? ex : null) : QueuedItemStatus.FinallyFailed);
 			}
 		}
 		return item;
@@ -131,13 +131,13 @@ public interface IQueue<TPayload>
 
 public record QueuedItem<TPayload>(TimestampId Id, IList<QueuedItemStatus> Statuses, TPayload Payload);
 
-public record QueuedItemStatus(string Status, DateTime Timestamp, DateTime? NextReevaluation = null)
+public record QueuedItemStatus(string Status, DateTime Timestamp, DateTime? NextReevaluation = null, QueuedItemStatusException? Exception = null)
 {
 	public static QueuedItemStatus Enqueued() { return new QueuedItemStatus(StatusEnqueued, DateTime.UtcNow); }
 	public static QueuedItemStatus Enqueued(DateTime? nextReevaluation = null) { return new QueuedItemStatus(StatusEnqueued, DateTime.UtcNow, nextReevaluation); }
 	public static QueuedItemStatus Processing { get => new QueuedItemStatus(StatusProcessing, DateTime.UtcNow); }
 	public static QueuedItemStatus Processed { get => new QueuedItemStatus(StatusProcessed, DateTime.UtcNow); }
-	public static QueuedItemStatus Failed (DateTime nextReevaluation) => new QueuedItemStatus(StatusFailed, DateTime.UtcNow, nextReevaluation);
+	public static QueuedItemStatus Failed (DateTime nextReevaluation, Exception? exception) => new QueuedItemStatus(StatusFailed, DateTime.UtcNow, nextReevaluation, exception != null ? new QueuedItemStatusException(exception) : null);
 	public static QueuedItemStatus FinallyFailed { get => new QueuedItemStatus(StatusFinallyFailed, DateTime.UtcNow); }
 
 	public static readonly string StatusEnqueued = "Enqueued";
@@ -145,4 +145,12 @@ public record QueuedItemStatus(string Status, DateTime Timestamp, DateTime? Next
 	public static readonly string StatusProcessed = "Processed";
 	public static readonly string StatusFailed = "Failed";
 	public static readonly string StatusFinallyFailed = "FinallyFailed";
+}
+
+public record QueuedItemStatusException(string Message, string? StackTrace)
+{
+	public QueuedItemStatusException(Exception exception) : this(exception.Message, exception.StackTrace)
+	{
+
+	}
 }

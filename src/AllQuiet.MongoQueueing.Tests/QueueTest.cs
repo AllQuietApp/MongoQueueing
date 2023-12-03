@@ -8,13 +8,14 @@ namespace AllQuiet.MongoQueueing.Tests.Queuing;
 
 public class QueueTest : MongoDBTest
 {
+    private readonly QueuedItemRepository<SomePayload> repository;
     private readonly IMongoCollection<QueuedItem<SomePayload>> collection;
     private readonly Queue<SomePayload> sut;
 
     public QueueTest()
     {
         var collectionName = "queuedItemsSomePayload";
-        var repository = new QueuedItemRepository<SomePayload>(A.Dummy<ILogger<QueuedItemRepository<SomePayload>>>(), this.MongoDatabase, collectionName);
+        this.repository = new QueuedItemRepository<SomePayload>(A.Dummy<ILogger<QueuedItemRepository<SomePayload>>>(), this.MongoDatabase, collectionName);
         this.collection = this.MongoDatabase.GetCollection<QueuedItem<SomePayload>>(collectionName);
         this.sut = new Queue<SomePayload>(A.Fake<ILogger<Queue<SomePayload>>>(), repository, new OptionsWrapper<QueueOptions>(new QueueOptions())); 
     }
@@ -50,6 +51,33 @@ public class QueueTest : MongoDBTest
         
         Assert.NotNull(queuedItemAfterDequeue);
         Assert.Equal(QueuedItemStatus.StatusProcessed, queuedItemAfterDequeue.Statuses[0].Status);
+        Assert.Equal(QueuedItemStatus.StatusProcessing, queuedItemAfterDequeue.Statuses[1].Status);
+        Assert.Equal(QueuedItemStatus.StatusEnqueued, queuedItemAfterDequeue.Statuses[2].Status);
+    }
+
+    [Fact]
+    public async Task Dequeue_ProcessingWithException_WithPersistException_SetsToFailedWithException()
+    {
+        // Arrange
+        var queue = new Queue<SomePayload>(A.Fake<ILogger<Queue<SomePayload>>>(), this.repository, new OptionsWrapper<QueueOptions>(new QueueOptions { PersistException = true })); 
+        var payload = new SomePayload { SomeString = "abc123" };
+        var queuedItem = await queue.EnqueueAsync(payload);
+
+        // Act & Assert
+        await queue.DequeueAsync(null, payload => {
+            throw new Exception("Something went terribly wrong.");
+        });
+
+        var queuedItemAfterDequeue = await this.collection.Find(Builders<QueuedItem<SomePayload>>.Filter.Eq(item => item.Id, queuedItem.Id)).FirstOrDefaultAsync();
+        
+        Assert.NotNull(queuedItemAfterDequeue);
+        Assert.Equal(QueuedItemStatus.StatusFailed, queuedItemAfterDequeue.Statuses[0].Status);
+        Assert.NotNull(queuedItemAfterDequeue.Statuses[0].Exception);
+        Assert.Equal("Something went terribly wrong.", queuedItemAfterDequeue.Statuses[0].Exception!.Message);
+        Assert.NotNull(queuedItemAfterDequeue.Statuses[0].NextReevaluation);
+        Assert.True(queuedItemAfterDequeue.Statuses[0].NextReevaluation!.Value >= queuedItemAfterDequeue.Statuses[0].Timestamp, 
+            $"Expected {queuedItemAfterDequeue.Statuses[0].NextReevaluation!.Value} ({queuedItemAfterDequeue.Statuses[0].NextReevaluation!.Value.Ticks }) to be gte {queuedItemAfterDequeue.Statuses[0].Timestamp} ({queuedItemAfterDequeue.Statuses[0].Timestamp.Ticks})");
+
         Assert.Equal(QueuedItemStatus.StatusProcessing, queuedItemAfterDequeue.Statuses[1].Status);
         Assert.Equal(QueuedItemStatus.StatusEnqueued, queuedItemAfterDequeue.Statuses[2].Status);
     }
