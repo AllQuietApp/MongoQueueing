@@ -4,27 +4,64 @@ public class QueueOptions
 {
 
     /// <summary>
-    ///  How often to poll for new payloads in the queue. Default 1s.
+    /// Specifies the frequency of polling for new payloads in the queue.
     /// </summary>
+    /// <remarks>
+    /// A shorter interval leads to quicker detection of new payloads but may increase system load.
+    /// The default interval is set to 1 second.
+    /// </remarks>
     public TimeSpan PollInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    ///  How often to poll for failed payloads in the queue. Default 10s.
+    /// Determines how frequently the system checks for failed payloads in the queue.
     /// </summary>
+    /// <remarks>
+    /// Adjusting this value can help manage how often failed payloads are retried or inspected.
+    /// Default value is 10 seconds.
+    /// </remarks>
     public TimeSpan FailedPollInterval { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// How often to poll timed out payloads in the queue. Default 1min.
+    /// Sets the interval for polling payloads that have timed out in the queue.
     /// </summary>
+    /// <remarks>
+    /// This interval helps in identifying and handling payloads that have not been processed within their expected time frame.
+    /// Default setting is 1 minute.
+    /// </remarks>
     public TimeSpan OrphanedPollInterval { get; set; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// After what time should a payload which is in status "processing" considered as timed out and will be restarted. Default 30min.
+    /// Defines the timeout duration for payloads in a 'processing' state before they are considered timed out.
     /// </summary>
+    /// <remarks>
+    /// This setting is crucial for handling cases where a payload may be stuck or processing longer than expected.
+    /// The default timeout is 30 minutes.
+    /// </remarks>
     public TimeSpan ProcessingTimeout { get; set; } = TimeSpan.FromMinutes(30);
     
     /// <summary>
-    /// Wether to use polling or MongoDB change streams. Change streams are only supported in replica sets.
+    /// Indicates whether to use polling or MongoDB change streams for queue updates.
     /// </summary>
+    /// <remarks>
+    /// Change streams provide a more efficient way to receive updates, but they require a MongoDB replica set.
+    /// By default, this is set to false, using polling.
+    /// </remarks>
     public bool UseChangeStream { get; set; } = false;
+
+    /// <summary>
+    /// Specifies the intervals for retrying failed payload processing, in seconds.
+    /// </summary>
+    /// <remarks>
+    /// Each element in the array represents the time to wait before the next retry attempt.
+    /// The length of the array also determines the total number of retry attempts.
+    /// </remarks>
+    public int[] RetryIntervalsInSeconds { get; set; } = new []
+	{
+		1,
+		2,
+		10,
+		30,
+		60,
+		3600,
+	};
 }

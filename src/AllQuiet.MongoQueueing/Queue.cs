@@ -1,7 +1,6 @@
 using AllQuiet.MongoQueueing.MongoDB;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace AllQuiet.MongoQueueing;
@@ -11,16 +10,7 @@ public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
     private readonly ILogger<Queue<TPayload>> logger;
     private readonly IQueuedItemRepository<TPayload> queuedItemRepository;
     private readonly QueueOptions queueOptions;
-	private static readonly int[] RetryIntervalsInSeconds = new []
-	{
-		1,
-		2,
-		10,
-		30,
-		60,
-		3600,
-	};
-
+	
     public Queue(ILogger<Queue<TPayload>> logger, IQueuedItemRepository<TPayload> queuedItemRepository, IOptions<QueueOptions> queueOptions)
 	{
 		if (queueOptions.Value.ProcessingTimeout <= TimeSpan.Zero)
@@ -72,12 +62,12 @@ public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
 	private DateTime? CalculateNextReevalation(QueuedItem<TPayload> item)
 	{
 		var failedCount = item.Statuses.Count(status => status.Status == QueuedItemStatus.StatusFailed);
-		if (failedCount > RetryIntervalsInSeconds.Length - 1)
+		if (failedCount > this.queueOptions.RetryIntervalsInSeconds.Length - 1)
 		{
 			return null;
 		}
 		
-		return item.Statuses[0].Timestamp.AddSeconds(RetryIntervalsInSeconds[failedCount]);
+		return item.Statuses[0].Timestamp.AddSeconds(this.queueOptions.RetryIntervalsInSeconds[failedCount]);
 	}
 
 	public async Task<QueuedItem<TPayload>?> DequeueAsync(TimestampId? queuedItemId, Func<TPayload, Task> processAsync)
@@ -120,12 +110,22 @@ public interface IDequeueableQueue<TPayload> : IQueue<TPayload>
 
 public interface IQueue<TPayload>
 {
-	/// <summary>
-    /// Enqueues a new payload on the current queue.
-	/// </summary>
-	/// <param name="payload">The payload to enqueue.</param>
-	/// <param name="nextReevaluation">If null, then the payload is processed as soon as possible. If specified, the payload will be processed at earliest after the provided DateTime. Use this param to schedule processing in the future.</param>
-	/// <returns>The queued item with the attached payload.</returns>
+    /// <summary>
+    /// Asynchronously enqueues a new payload into the current queue.
+    /// </summary>
+    /// <param name="payload">The payload to be enqueued.</param>
+    /// <param name="nextReevaluation">
+    /// Optional: Specifies the earliest time the payload should be processed. 
+    /// If null, the payload is processed as soon as possible. 
+    /// If provided, it schedules the payload for future processing at the specified DateTime or later.
+    /// </param>
+    /// <returns>
+    /// A task that, when completed, returns the queued item containing the enqueued payload.
+    /// </returns>
+    /// <remarks>
+    /// This method allows for both immediate and scheduled processing of payloads.
+    /// Scheduling is useful for deferred processing or implementing delay/retry mechanisms.
+    /// </remarks>
 	Task<QueuedItem<TPayload>> EnqueueAsync(TPayload payload, DateTime? nextReevaluation = null);
 }
 

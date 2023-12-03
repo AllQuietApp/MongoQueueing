@@ -55,13 +55,33 @@ builder.Services.AddSingleton<IMongoQueueingDatabaseContext>(new MongoQueueingDa
 
 **Running in Replica set mode? Enable change streams!**
 Listening to changes of the MongoDB change stream is more resourceful than polling your MongoDB. This feature though is only available when running in replica set mode. 
-Make sure to enable it in your appsettings, it's disabled by default.
+Make sure to enable it in your `appsettings.json`, it's disabled by default. Use `"UseChangeStream": true`.
 
-`appsettings.json`
+
+#### QueueOptions
+In your `appsettings.json`, you can configure the following options of `MongoQueue`:
+
 ```json
 {
   "QueueOptions": {
-    "UseChangeStream": true
+    // TimeSpan specifying how often to poll for new payloads. Default is 1 second.
+    "PollInterval": "00:00:01",
+
+    // TimeSpan specifying the frequency for polling failed payloads. Default is 10 seconds.
+    "FailedPollInterval": "00:00:10",
+
+    // TimeSpan defining how often to check for timed-out payloads. Default is 1 minute.
+    "OrphanedPollInterval": "00:01:00",
+
+    // TimeSpan after which a payload in 'processing' state is considered timed out. Default is 30 minutes.
+    "ProcessingTimeout": "00:30:00",
+
+    // Boolean to determine whether to use MongoDB change streams instead of polling. Default is false.
+    "UseChangeStream": false,
+
+    // Array of integers specifying the seconds between each retry for a failed payload. 
+    // Length of the array also indicates the number of retry attempts.
+    "RetryIntervalsInSeconds": [1, 2, 10, 30, 60, 3600]
   }
 }
 ```
