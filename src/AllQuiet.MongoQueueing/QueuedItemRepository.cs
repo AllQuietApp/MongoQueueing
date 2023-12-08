@@ -112,6 +112,11 @@ public class QueuedItemRepository<TPayload> : MongoRepository<QueuedItem<TPayloa
         };
     }
 
+    public async Task DeleteAsync(TimestampId id)
+    {
+       await this.Collection.DeleteOneAsync(Builders<QueuedItem<TPayload>>.Filter.Eq(item => item.Id, id));
+    }
+
     public new IMongoCollection<QueuedItem<TPayload>> Collection => base.Collection;
 }
 
@@ -122,5 +127,7 @@ public interface IQueuedItemRepository<TPayload>
         string statusBeforeUpdate, string statusAfterUpdate, DateTime nextReevaluationBefore, DateTime? statusTimestampBefore = null, TimestampId? queuedItemId = null);
     Task UpdateStatusAsync(
         TimestampId id, QueuedItemStatus statusAfterUpdate);
+    Task DeleteAsync(TimestampId id);
+
     IMongoCollection<QueuedItem<TPayload>> Collection { get; }
 }

@@ -10,14 +10,17 @@ public class QueueTest : MongoDBTest
 {
     private readonly QueuedItemRepository<SomePayload> repository;
     private readonly IMongoCollection<QueuedItem<SomePayload>> collection;
-    private readonly Queue<SomePayload> sut;
 
     public QueueTest()
     {
         var collectionName = "queuedItemsSomePayload";
         this.repository = new QueuedItemRepository<SomePayload>(A.Dummy<ILogger<QueuedItemRepository<SomePayload>>>(), this.MongoDatabase, collectionName);
         this.collection = this.MongoDatabase.GetCollection<QueuedItem<SomePayload>>(collectionName);
-        this.sut = new Queue<SomePayload>(A.Fake<ILogger<Queue<SomePayload>>>(), repository, new OptionsWrapper<QueueOptions>(new QueueOptions())); 
+    }
+
+    private Queue<SomePayload> Sut(QueueOptions? options = null)
+    {
+        return new Queue<SomePayload>(A.Fake<ILogger<Queue<SomePayload>>>(), repository, new OptionsWrapper<QueueOptions>(options ?? new QueueOptions())); 
     }
 
     [Fact]
@@ -25,9 +28,10 @@ public class QueueTest : MongoDBTest
     {
         // Arrange
         var payload = new SomePayload { SomeString = "abc123" };
+        var sut = this.Sut();
 
         // Act
-        var queuedItem = await this.sut.EnqueueAsync(payload);
+        var queuedItem = await sut.EnqueueAsync(payload);
     
         // Assert
         Assert.NotNull(queuedItem);
@@ -40,11 +44,12 @@ public class QueueTest : MongoDBTest
     public async Task Dequeue_ProcessingSuccesful_SetsToProcessed()
     {
         // Arrange
+        var sut = this.Sut();
         var payload = new SomePayload { SomeString = "abc123" };
-        var queuedItem = await this.sut.EnqueueAsync(payload);
+        var queuedItem = await sut.EnqueueAsync(payload);
 
         // Act
-        await this.sut.DequeueAsync(null, payload => Task.CompletedTask);
+        await sut.DequeueAsync(null, payload => Task.CompletedTask);
 
         // Assert
         var queuedItemAfterDequeue = await this.collection.Find(Builders<QueuedItem<SomePayload>>.Filter.Eq(item => item.Id, queuedItem.Id)).FirstOrDefaultAsync();
@@ -56,15 +61,33 @@ public class QueueTest : MongoDBTest
     }
 
     [Fact]
+    public async Task Dequeue_ProcessingSuccesful_WithClearMessages_Removes()
+    {
+        // Arrange
+        var sut = this.Sut(new QueueOptions { ClearSuccessfulMessages = true });
+        var payload = new SomePayload { SomeString = "abc123" };
+        var queuedItem = await sut.EnqueueAsync(payload);
+
+        // Act
+        await sut.DequeueAsync(null, payload => Task.CompletedTask);
+
+        // Assert
+        var queuedItemAfterDequeue = await this.collection.Find(Builders<QueuedItem<SomePayload>>.Filter.Eq(item => item.Id, queuedItem.Id)).FirstOrDefaultAsync();
+        
+        Assert.Null(queuedItemAfterDequeue);
+    }
+
+    [Fact]
     public async Task Dequeue_ProcessingWithException_WithPersistException_SetsToFailedWithException()
     {
         // Arrange
-        var queue = new Queue<SomePayload>(A.Fake<ILogger<Queue<SomePayload>>>(), this.repository, new OptionsWrapper<QueueOptions>(new QueueOptions { PersistException = true })); 
+        var sut = this.Sut(new QueueOptions { PersistException = true });
+
         var payload = new SomePayload { SomeString = "abc123" };
-        var queuedItem = await queue.EnqueueAsync(payload);
+        var queuedItem = await sut.EnqueueAsync(payload);
 
         // Act & Assert
-        await queue.DequeueAsync(null, payload => {
+        await sut.DequeueAsync(null, payload => {
             throw new Exception("Something went terribly wrong.");
         });
 
@@ -86,11 +109,12 @@ public class QueueTest : MongoDBTest
     public async Task Dequeue_ProcessingWithException_SetsToFailed()
     {
         // Arrange
+        var sut = this.Sut();
         var payload = new SomePayload { SomeString = "abc123" };
-        var queuedItem = await this.sut.EnqueueAsync(payload);
+        var queuedItem = await sut.EnqueueAsync(payload);
 
         // Act & Assert
-        await this.sut.DequeueAsync(null, payload => {
+        await sut.DequeueAsync(null, payload => {
             throw new Exception("Something went terribly wrong.");
         });
 
@@ -110,6 +134,7 @@ public class QueueTest : MongoDBTest
     public async Task EnqueueOrphanedProcessingAsync()
     {
         // Arrange
+        var sut = this.Sut();
         var item = new QueuedItem<SomePayload>(
             new TimestampId(),
             new [] { new QueuedItemStatus(QueuedItemStatus.StatusProcessing, DateTime.UtcNow.AddMinutes(-60)) },
@@ -118,7 +143,7 @@ public class QueueTest : MongoDBTest
         await this.collection.InsertOneAsync(item);
 
         // Act
-        var itemProcessing = await this.sut.EnqueueOrphanedProcessingAsync();
+        var itemProcessing = await sut.EnqueueOrphanedProcessingAsync();
 
         // Assert
         

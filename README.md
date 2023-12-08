@@ -70,7 +70,8 @@ In your `appsettings.json`, you can configure the following options of `MongoQue
     "ProcessingTimeout": "00:30:00",
     "UseChangeStream": false,
     "RetryIntervalsInSeconds": [1, 2, 10, 30, 60, 3600],
-    "PersistException": false
+    "PersistException": false,
+    "ClearSuccessfulMessages": false
   }
 }
 ```
@@ -105,7 +106,12 @@ In your `appsettings.json`, you can configure the following options of `MongoQue
   - Format: Array of integers
 
 - `PersistException`
-  - Boolean indicating whether exceptions should be persisted for analysis. 
+  - Boolean indicating whether exceptions should be persisted for analysis.
+  - Default: `false`
+  - Format: Boolean
+  - 
+- `ClearSuccessfulPayloads`
+  - Boolean indicating whether successfully processed payloads should be deleted from the queue collection.
   - Default: `false`
   - Format: Boolean
 

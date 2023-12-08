@@ -44,7 +44,15 @@ public class Queue<TPayload> : IDequeueableQueue<TPayload>, IQueue<TPayload>
 			try 
 			{
 				await processAsync(item.Payload);
-				await this.queuedItemRepository.UpdateStatusAsync(item.Id, QueuedItemStatus.Processed);
+				if (this.queueOptions.ClearSuccessfulMessages)
+				{
+					await this.queuedItemRepository.DeleteAsync(item.Id);
+				}
+				else
+				{
+					
+					await this.queuedItemRepository.UpdateStatusAsync(item.Id, QueuedItemStatus.Processed);
+				}
 			} 
 			catch(Exception ex)
 			{

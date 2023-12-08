@@ -73,4 +73,14 @@ public class QueueOptions
     /// Default value is false, meaning exceptions are not persisted by default.
     /// </remarks>
     public bool PersistException { get; set; } = false;
+
+    /// <summary>
+    /// Indicates whether successfully processed messages should be deleted from the queue collection.
+    /// </summary>
+    /// <remarks>
+    /// When set to true, messages that have been successfully processed will be removed from the queue.
+    /// This can help in maintaining a cleaner queue and reducing storage usage.
+    /// The default value is false, meaning successfully processed messages are not cleared by default.
+    /// </remarks>
+    public bool ClearSuccessfulMessages { get; set; } = false;
 }
