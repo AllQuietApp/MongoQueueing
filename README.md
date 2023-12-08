@@ -110,7 +110,7 @@ In your `appsettings.json`, you can configure the following options of `MongoQue
   - Default: `false`
   - Format: Boolean
   - 
-- `ClearSuccessfulPayloads`
+- `ClearSuccessfulMessages`
   - Boolean indicating whether successfully processed payloads should be deleted from the queue collection.
   - Default: `false`
   - Format: Boolean
