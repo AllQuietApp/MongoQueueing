@@ -38,10 +38,14 @@ public class QueueChangeStreamBackgroundService<TPayload> : QueueBackgroundServi
                     }
                 }
             }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogInformation(ex, $"Error reading from change stream for {typeof(TPayload).Name}.");
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, $"Error reading from change stream for {typeof(TPayload).Name}.");
-                await Task.Delay(100);
+                await Task.Delay(500);
             }
         }
     }
