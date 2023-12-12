@@ -33,6 +33,10 @@ public class QueueChangeStreamBackgroundService<TPayload> : QueueBackgroundServi
                     {
                         foreach (var change in cursor.Current)
                         {
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                return;
+                            }
                             await this.DequeueAsync(new TimestampId((ulong)change.DocumentKey["_id"].AsInt64));
                         }
                     }
