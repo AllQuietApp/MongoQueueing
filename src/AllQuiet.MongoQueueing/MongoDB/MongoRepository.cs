@@ -18,7 +18,7 @@ public abstract class MongoRepository<T>
     private readonly IMongoCollection<T> collection;
     private readonly IEnumerable<CreateIndexModel<T>> indexModels;
     private bool indexesWereCreated;
-    private object indexesWereCreatedLock = new ();
+    private object indexesWereCreatedLock = new();
 
     public MongoRepository(ILogger logger, IMongoQueueingDatabaseContext databaseContext, string collectionName) : this(
         logger, databaseContext.Database, collectionName)
@@ -53,7 +53,7 @@ public abstract class MongoRepository<T>
 
     protected virtual IMongoCollection<T> Collection
     {
-        get 
+        get
         {
             this.EnsureIndexes();
             return this.collection;
@@ -64,20 +64,20 @@ public abstract class MongoRepository<T>
     {
         if (this.indexesWereCreated == false)
         {
-            lock(this.indexesWereCreatedLock)
+            lock (this.indexesWereCreatedLock)
             {
                 if (this.indexesWereCreated == false)
                 {
-                    try 
+                    try
                     {
-                        if (this.indexModels.Any()) 
+                        if (this.indexModels.Any())
                         {
                             logger.LogDebug($"Creating Indexes {this.GetType().Name}...");
                             this.collection.Indexes.CreateMany(indexModels);
                             logger.LogDebug($"Creating Indexes {this.GetType().Name}...done.");
                         }
                         this.indexesWereCreated = true;
-                    } 
+                    }
                     catch (Exception ex)
                     {
                         this.logger.LogCritical($"Error creating indexes for collection {this.collectionName}", ex);
@@ -86,21 +86,21 @@ public abstract class MongoRepository<T>
             }
         }
     }
-    
+
     private static readonly int MAX_ITERATIONS_UNIQUE_TIMESTAMP = 1000;
 
     protected async Task<T> InsertWithUniqueTimestampId(Func<TimestampId, T> createEntity)
     {
         var timestampId = new TimestampId();
-        for (uint i = 0; i<MAX_ITERATIONS_UNIQUE_TIMESTAMP; i++)
+        for (uint i = 0; i < MAX_ITERATIONS_UNIQUE_TIMESTAMP; i++)
         {
-            try 
+            try
             {
                 var entity = createEntity(new TimestampId(timestampId, i));
                 await this.Collection.InsertOneAsync(entity);
                 return entity;
             }
-            catch(MongoException ex)
+            catch (MongoException ex)
             {
                 if (ex.IsDuplicateKeyException() == false)
                     throw;
@@ -108,4 +108,8 @@ public abstract class MongoRepository<T>
         }
         throw new Exception($"Unable to find unique TimestampId for {timestampId.Value}");
     }
+
+    public string CollectionName => this.collectionName;
+
+    public IMongoDatabase Database => this.database;
 }
