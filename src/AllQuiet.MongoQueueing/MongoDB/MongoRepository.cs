@@ -80,7 +80,7 @@ public abstract class MongoRepository<T>
                     }
                     catch (Exception ex)
                     {
-                        this.logger.LogCritical($"Error creating indexes for collection {this.collectionName}", ex);
+                        this.logger.LogCritical(ex, $"Error creating indexes for collection {this.collectionName}");
                     }
                 }
             }
