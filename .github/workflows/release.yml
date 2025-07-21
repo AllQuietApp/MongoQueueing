@@ -10,11 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1.0.5
-
       - name: Restore NuGet dependencies
-        run: nuget restore $SOLUTION
+        run: dotnet restore $SOLUTION
       
       - name: Setup .NET Core SDK 6.0
         uses: actions/setup-dotnet@v3
@@ -33,7 +30,7 @@ jobs:
         run: dotnet test /p:Configuration=Release --no-restore --no-build --verbosity normal
 
       - name: Push to NuGet
-        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}      
+        run: dotnet nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}      
         
       - name: Create GitHub release
         uses: ncipollo/release-action@v1
